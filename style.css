@@ -466,6 +466,9 @@ body.light-mode .hero h1 {
     grid-template-columns: 320px 1fr;
     gap: 32px;
 }
+.dash-main {
+    min-width: 0;
+}
 @media (max-width: 1200px) {
     .dash-layout {
         grid-template-columns: 1fr;
@@ -586,7 +589,7 @@ body.light-mode .hero h1 {
 
 /* KPI Grid */
 .kpi-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     margin-bottom: 32px;
 }
 .kpi-card {
@@ -623,8 +626,16 @@ body.light-mode .hero h1 {
 
 /* Charts Grid */
 .charts-grid {
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     margin-bottom: 32px;
+}
+.chart-wide {
+    grid-column: 1 / -1;
+}
+@media (min-width: 992px) {
+    .chart-wide {
+        grid-column: span 2;
+    }
 }
 @media (max-width: 768px) {
     .charts-grid {
@@ -683,6 +694,30 @@ body.light-mode .hero h1 {
 .table-wrapper {
     overflow-x: auto;
     max-height: 450px;
+    width: 100%;
+}
+.btn-table-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-table-action:hover {
+    background: var(--primary);
+    color: #ffffff;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+.btn-table-action i {
+    width: 14px;
+    height: 14px;
 }
 table {
     width: 100%;

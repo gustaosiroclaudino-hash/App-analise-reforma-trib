@@ -808,7 +808,7 @@ function renderTable() {
     tableBody.innerHTML = '';
     
     if (filtered.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Nenhum item localizado na base ativa.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted);">Nenhum item localizado na base ativa.</td></tr>`;
         return;
     }
 
@@ -819,6 +819,11 @@ function renderTable() {
 
         tr.innerHTML = `
             <td>#${sale.id_nfe}</td>
+            <td style="text-align: center;">
+                <button class="btn-table-action" onclick="simulateRow(${sale.id_nfe})" title="Carregar no Simulador">
+                    <i data-lucide="play"></i>
+                </button>
+            </td>
             <td style="font-weight: 500; color: var(--text-primary);">${sale.produto_nome}</td>
             <td><code>${sale.ncm_codigo}</code></td>
             <td><span class="badge-uf">${sale.uf_destino}</span></td>
@@ -830,6 +835,9 @@ function renderTable() {
         `;
         tableBody.appendChild(tr);
     });
+
+    // Recreate icons inside dynamically rendered table rows
+    lucide.createIcons();
 }
 
 // Single item quick simulator logic
@@ -900,3 +908,44 @@ function updateRulesDisplay() {
 function formatCurrency(val) {
     return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+// Dynamic row simulator trigger
+function simulateRow(idNfe) {
+    const sale = analyzedSales.find(s => s.id_nfe === idNfe);
+    if (!sale) return;
+
+    // Smooth scroll to the simulator
+    const simSection = document.getElementById('simulador-rapido');
+    if (simSection) {
+        simSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Fill in simulator fields
+    simProductName.value = sale.produto_nome;
+    simNcm.value = sale.ncm_codigo;
+    simValue.value = sale.valor_total;
+
+    // Auto-select rule type
+    const rule = matchRule(sale.ncm_codigo, sale.produto_nome);
+    if (rule) {
+        simRuleType.value = rule.tipo_regra;
+    } else {
+        simRuleType.value = 'padrao';
+    }
+
+    // Calculate
+    updateSingleSimulator();
+
+    // Highlight visual feedback
+    const resultCard = document.querySelector('.sim-result-card');
+    if (resultCard) {
+        resultCard.style.boxShadow = '0 0 35px var(--primary-glow)';
+        resultCard.style.borderColor = 'var(--primary)';
+        
+        setTimeout(() => {
+            resultCard.style.boxShadow = '';
+            resultCard.style.borderColor = '';
+        }, 1500);
+    }
+}
+window.simulateRow = simulateRow;
