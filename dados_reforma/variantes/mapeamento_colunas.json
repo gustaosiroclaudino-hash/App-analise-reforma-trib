@@ -1,0 +1,165 @@
+{
+  "id_nfe": [
+    "id_nfe",
+    "id_venda",
+    "id",
+    "numero_nfe",
+    "nfe",
+    "numero",
+    "id_nota",
+    "nota_fiscal",
+    "nota"
+  ],
+  "data_emissao": [
+    "data_emissao",
+    "data",
+    "emissao",
+    "data_venda",
+    "dt_emissao",
+    "dt_venda",
+    "data_nota"
+  ],
+  "uf_origem": [
+    "uf_origem",
+    "origem",
+    "uf_de",
+    "uf_orig",
+    "uf_remetente",
+    "estado_origem",
+    "uf_rem"
+  ],
+  "uf_destino": [
+    "uf_destino",
+    "uf_cliente",
+    "uf_dest",
+    "uf_para",
+    "uf",
+    "uf_destinatario",
+    "estado_destino",
+    "uf_destin"
+  ],
+  "ncm_codigo": [
+    "ncm_codigo",
+    "ncm",
+    "codigo_ncm",
+    "cod_ncm",
+    "ncm_code",
+    "ncm_no"
+  ],
+  "produto_nome": [
+    "produto_nome",
+    "descricao_produto",
+    "produto",
+    "descricao",
+    "nome_produto",
+    "item",
+    "nome_item",
+    "desc_item",
+    "desc_prod",
+    "produto_descricao"
+  ],
+  "quantidade": [
+    "quantidade",
+    "qtd",
+    "quant",
+    "qnt",
+    "qtde",
+    "quantidade_itens",
+    "quantia"
+  ],
+  "valor_unitario": [
+    "valor_unitario",
+    "preco_unitario",
+    "valor_unit",
+    "preco",
+    "vlr_unitario",
+    "vlr_unit",
+    "preco_unit",
+    "val_unit"
+  ],
+  "valor_total": [
+    "valor_total",
+    "valor_total_item",
+    "total",
+    "valor",
+    "valor_total_nfe",
+    "vlr_total",
+    "vl_total",
+    "valor_liq",
+    "liquido",
+    "vlr_total_item"
+  ],
+  "tipo_cliente": [
+    "tipo_cliente",
+    "tipo_cli",
+    "cliente_tipo",
+    "tipo_destinatario",
+    "perfil_cliente"
+  ],
+  "pis_atual": [
+    "pis_atual",
+    "valor_pis",
+    "pis",
+    "vlr_pis",
+    "vl_pis",
+    "pis_valor",
+    "pisval",
+    "valorpis",
+    "pis_vlr",
+    "pis_val",
+    "pis_aliquota"
+  ],
+  "cofins_atual": [
+    "cofins_atual",
+    "valor_cofins",
+    "cofins",
+    "vlr_cofins",
+    "vl_cofins",
+    "cofins_valor",
+    "cofinsval",
+    "valorcofins",
+    "cofins_vlr",
+    "cofins_val",
+    "cofins_aliquota"
+  ],
+  "icms_atual": [
+    "icms_atual",
+    "valor_icms",
+    "icms",
+    "vlr_icms",
+    "vl_icms",
+    "icms_valor",
+    "icmsval",
+    "valoricms",
+    "icms_vlr",
+    "icms_val",
+    "icms_aliquota",
+    "valor_icms_integral"
+  ],
+  "iss_atual": [
+    "iss_atual",
+    "valor_iss",
+    "iss",
+    "vlr_iss",
+    "vl_iss",
+    "iss_valor",
+    "issval",
+    "valoriss",
+    "iss_vlr",
+    "iss_val",
+    "iss_aliquota"
+  ],
+  "ipi_atual": [
+    "ipi_atual",
+    "valor_ipi",
+    "ipi",
+    "vlr_ipi",
+    "vl_ipi",
+    "ipi_valor",
+    "ipival",
+    "valoripi",
+    "ipi_vlr",
+    "ipi_val",
+    "ipi_aliquota"
+  ]
+}

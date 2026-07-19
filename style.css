@@ -782,14 +782,10 @@ tr:hover td {
     padding: 60px 0 100px;
 }
 .rules-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 32px;
 }
-@media (max-width: 992px) {
-    .rules-grid {
-        grid-template-columns: 1fr;
-    }
-}
+
 .json-viewer {
     background: rgba(9, 13, 22, 0.8);
     border: 1px solid var(--border-color);

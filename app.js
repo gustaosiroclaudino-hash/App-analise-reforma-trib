@@ -48,6 +48,25 @@ const DEFAULT_RULES = {
     "fonte_oficial": "https://www.gov.br/fazenda/pt-br/assuntos/reforma-tributaria"
 };
 
+// Fallback Default Column Header Mappings
+const DEFAULT_MAPPINGS = {
+    "id_nfe": ["id_nfe", "id_venda", "id", "numero_nfe", "nfe", "numero", "id_nota", "nota_fiscal", "nota"],
+    "data_emissao": ["data_emissao", "data", "emissao", "data_venda", "dt_emissao", "dt_venda", "data_nota"],
+    "uf_origem": ["uf_origem", "origem", "uf_de", "uf_orig", "uf_remetente", "estado_origem", "uf_rem"],
+    "uf_destino": ["uf_destino", "uf_cliente", "uf_dest", "uf_para", "uf", "uf_destinatario", "estado_destino", "uf_destin"],
+    "ncm_codigo": ["ncm_codigo", "ncm", "codigo_ncm", "cod_ncm", "ncm_code", "ncm_no"],
+    "produto_nome": ["produto_nome", "descricao_produto", "produto", "descricao", "nome_produto", "item", "nome_item", "desc_item", "desc_prod", "produto_descricao"],
+    "quantidade": ["quantidade", "qtd", "quant", "qnt", "qtde", "quantidade_itens", "quantia"],
+    "valor_unitario": ["valor_unitario", "preco_unitario", "valor_unit", "preco", "vlr_unitario", "vlr_unit", "preco_unit", "val_unit"],
+    "valor_total": ["valor_total", "valor_total_item", "total", "valor", "valor_total_nfe", "vlr_total", "vl_total", "valor_liq", "liquido", "vlr_total_item"],
+    "tipo_cliente": ["tipo_cliente", "tipo_cli", "cliente_tipo", "tipo_destinatario", "perfil_cliente"],
+    "pis_atual": ["pis_atual", "valor_pis", "pis", "vlr_pis", "vl_pis", "pis_valor", "pisval", "valorpis", "pis_vlr", "pis_val", "pis_aliquota"],
+    "cofins_atual": ["cofins_atual", "valor_cofins", "cofins", "vlr_cofins", "vl_cofins", "cofins_valor", "cofinsval", "valorcofins", "cofins_vlr", "cofins_val", "cofins_aliquota"],
+    "icms_atual": ["icms_atual", "valor_icms", "icms", "vlr_icms", "vl_icms", "icms_valor", "icmsval", "valoricms", "icms_vlr", "icms_val", "icms_aliquota", "valor_icms_integral"],
+    "iss_atual": ["iss_atual", "valor_iss", "iss", "vlr_iss", "vl_iss", "iss_valor", "issval", "valoriss", "iss_vlr", "iss_val", "iss_aliquota"],
+    "ipi_atual": ["ipi_atual", "valor_ipi", "ipi", "vlr_ipi", "vl_ipi", "ipi_valor", "ipival", "valoripi", "ipi_vlr", "ipi_val", "ipi_aliquota"]
+};
+
 // Fallback Default Sales Database (contains vendas_exemplo.csv + expanded entries for premium dashboard presentation)
 const DEFAULT_VENDAS = [
     { id_nfe: 1, data_emissao: "2026-07-01", uf_origem: "SP", uf_destino: "SP", ncm_codigo: "85171300", produto_nome: "Smartphone Android", quantidade: 2, valor_unitario: 1500.00, valor_total: 3000.00, tipo_cliente: "B2C", pis_atual: 49.50, cofins_atual: 228.00, icms_atual: 540.00, iss_atual: 0.00, ipi_atual: 0.00 },
@@ -73,6 +92,7 @@ const DEFAULT_VENDAS = [
 
 // App State
 let systemRules = JSON.parse(JSON.stringify(DEFAULT_RULES));
+let columnMappings = null;
 let rawSales = [];
 let analyzedSales = [];
 let activeSortColumn = 'id_nfe';
@@ -321,14 +341,31 @@ function initEventListeners() {
 
 // Load Rules from JSON & initial CSV sales
 function loadInitialData() {
-    // Attempt loading JSON first
-    fetch('dados_reforma/regras_aliquotas.json')
+    const fetchRules = fetch('dados_reforma/regras_aliquotas.json')
         .then(response => {
             if (!response.ok) throw new Error('Não foi possível obter o JSON das regras');
             return response.json();
         })
-        .then(data => {
-            systemRules = data;
+        .catch(err => {
+            console.log('Erro ao carregar regras via HTTP. Usando regras padrão locais:', err);
+            return JSON.parse(JSON.stringify(DEFAULT_RULES));
+        });
+
+    const fetchMappings = fetch('dados_reforma/variantes/mapeamento_colunas.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Não foi possível obter o JSON de mapeamento de colunas');
+            return response.json();
+        })
+        .catch(err => {
+            console.log('Erro ao carregar mapeamento de colunas via HTTP. Usando padrão local:', err);
+            return JSON.parse(JSON.stringify(DEFAULT_MAPPINGS));
+        });
+
+    Promise.all([fetchRules, fetchMappings])
+        .then(([rules, mappings]) => {
+            systemRules = rules;
+            columnMappings = mappings;
+
             // Update sliders with JSON standard values
             if (systemRules.aliquotas_padrao) {
                 cbsSlider.value = (systemRules.aliquotas_padrao.cbs * 100).toFixed(1);
@@ -336,15 +373,18 @@ function loadInitialData() {
                 ibsSlider.value = (systemRules.aliquotas_padrao.ibs * 100).toFixed(1);
                 ibsVal.textContent = (systemRules.aliquotas_padrao.ibs * 100).toFixed(1) + '%';
             }
+
             updateRulesDisplay();
-            loadInitialSales();
-        })
-        .catch(err => {
-            console.log('Erro ao carregar regras via HTTP. Usando regras padrão locais:', err);
-            systemRules = JSON.parse(JSON.stringify(DEFAULT_RULES));
-            updateRulesDisplay();
+            updateMappingsDisplay();
             loadInitialSales();
         });
+}
+
+function updateMappingsDisplay() {
+    const mappingsViewer = document.getElementById('mappings-viewer');
+    if (mappingsViewer) {
+        mappingsViewer.textContent = JSON.stringify(columnMappings || DEFAULT_MAPPINGS, null, 2);
+    }
 }
 
 function loadInitialSales() {
@@ -397,9 +437,14 @@ function parseSalesCSV(csvText) {
         complete: function(results) {
             if (results.data && results.data.length > 0) {
                 const headers = Object.keys(results.data[0]);
+                const mappings = columnMappings || DEFAULT_MAPPINGS;
                 
-                // Helper to search keys using aliases, filtering empty values
-                const getVal = (row, aliases, defaultVal = null) => {
+                // Helper to search keys using aliases from configurations, filtering empty values
+                const getVal = (row, keyOrAliases, defaultVal = null) => {
+                    const aliases = Array.isArray(keyOrAliases) 
+                        ? keyOrAliases 
+                        : (mappings[keyOrAliases] || [keyOrAliases]);
+                        
                     const foundKey = headers.find(k => {
                         const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
                         return aliases.some(alias => {
@@ -413,8 +458,8 @@ function parseSalesCSV(csvText) {
                 };
 
                 // Validate minimum requirements: we need some way to identify the product description and value
-                const productAliases = ['produto_nome', 'descricao_produto', 'produto', 'descricao', 'nome_produto', 'item'];
-                const valueAliases = ['valor_total', 'valor_total_item', 'total', 'valor', 'valor_total_nfe'];
+                const productAliases = mappings.produto_nome;
+                const valueAliases = mappings.valor_total;
 
                 const hasProduct = headers.some(k => {
                     const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -436,7 +481,7 @@ function parseSalesCSV(csvText) {
                 rawSales = results.data.map((row, idx) => {
                     // Map client type dynamically from doc type or length
                     let clientType = "B2C";
-                    const directType = getVal(row, ['tipo_cliente', 'tipo_cli', 'cliente_tipo']);
+                    const directType = getVal(row, 'tipo_cliente');
                     if (directType) {
                         clientType = String(directType).toUpperCase().includes("B2B") ? "B2B" : "B2C";
                     } else {
@@ -452,25 +497,25 @@ function parseSalesCSV(csvText) {
                         }
                     }
 
-                    const ncmRaw = getVal(row, ['ncm_codigo', 'ncm', 'codigo_ncm'], "");
+                    const ncmRaw = getVal(row, 'ncm_codigo', "");
                     const cleanNcm = String(ncmRaw || "").replace(/\D/g, "");
 
                     return {
-                        id_nfe: getVal(row, ['id_nfe', 'id_venda', 'id', 'numero_nfe', 'nfe', 'numero'], idx + 1),
-                        data_emissao: getVal(row, ['data_emissao', 'data', 'emissao', 'data_venda'], "2026-07-19"),
-                        uf_origem: getVal(row, ['uf_origem', 'origem', 'uf_de', 'uf_orig'], "SP"),
-                        uf_destino: getVal(row, ['uf_destino', 'uf_cliente', 'uf_dest', 'uf_para', 'uf'], "SP"),
+                        id_nfe: getVal(row, 'id_nfe', idx + 1),
+                        data_emissao: getVal(row, 'data_emissao', "2026-07-19"),
+                        uf_origem: getVal(row, 'uf_origem', "SP"),
+                        uf_destino: getVal(row, 'uf_destino', "SP"),
                         ncm_codigo: cleanNcm || "85171300",
-                        produto_nome: getVal(row, productAliases, "Produto Sem Nome"),
-                        quantidade: parseFloatSafe(getVal(row, ['quantidade', 'qtd', 'quant'], 1), 1),
-                        valor_unitario: parseFloatSafe(getVal(row, ['valor_unitario', 'preco_unitario', 'valor_unit', 'preco'], 0), 0),
-                        valor_total: parseFloatSafe(getVal(row, valueAliases, 0), 0),
+                        produto_nome: getVal(row, 'produto_nome', "Produto Sem Nome"),
+                        quantidade: parseFloatSafe(getVal(row, 'quantidade', 1), 1),
+                        valor_unitario: parseFloatSafe(getVal(row, 'valor_unitario', 0), 0),
+                        valor_total: parseFloatSafe(getVal(row, 'valor_total', 0), 0),
                         tipo_cliente: clientType,
-                        pis_atual: parseFloatSafe(getVal(row, ['pis_atual', 'valor_pis', 'pis', 'vlr_pis', 'vl_pis', 'pis_valor', 'pisval', 'valorpis', 'pis_vlr', 'pis_val'], 0), 0),
-                        cofins_atual: parseFloatSafe(getVal(row, ['cofins_atual', 'valor_cofins', 'cofins', 'vlr_cofins', 'vl_cofins', 'cofins_valor', 'cofinsval', 'valorcofins', 'cofins_vlr', 'cofins_val'], 0), 0),
-                        icms_atual: parseFloatSafe(getVal(row, ['icms_atual', 'valor_icms', 'icms', 'vlr_icms', 'vl_icms', 'icms_valor', 'icmsval', 'valoricms', 'icms_vlr', 'icms_val'], 0), 0),
-                        iss_atual: parseFloatSafe(getVal(row, ['iss_atual', 'valor_iss', 'iss', 'vlr_iss', 'vl_iss', 'iss_valor', 'issval', 'valoriss', 'iss_vlr', 'iss_val'], 0), 0),
-                        ipi_atual: parseFloatSafe(getVal(row, ['ipi_atual', 'valor_ipi', 'ipi', 'vlr_ipi', 'vl_ipi', 'ipi_valor', 'ipival', 'valoripi', 'ipi_vlr', 'ipi_val'], 0), 0)
+                        pis_atual: parseFloatSafe(getVal(row, 'pis_atual', 0), 0),
+                        cofins_atual: parseFloatSafe(getVal(row, 'cofins_atual', 0), 0),
+                        icms_atual: parseFloatSafe(getVal(row, 'icms_atual', 0), 0),
+                        iss_atual: parseFloatSafe(getVal(row, 'iss_atual', 0), 0),
+                        ipi_atual: parseFloatSafe(getVal(row, 'ipi_atual', 0), 0)
                     };
                 });
                 
