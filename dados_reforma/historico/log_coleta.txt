@@ -1,3 +1,5 @@
 [2026-07-19 03:44:05] SUCESSO: Conexão efetuada. Nenhuma alíquota padrão detectada no texto. Mantendo atuais.
 [2026-07-19 03:44:45] ALTERAÇÃO DETECTADA: cbs: 8.800% -> 9.5% | ibs: 17.700% -> 18.5% | 
 [2026-07-19 03:45:43] SUCESSO: Conexão efetuada. Nenhuma alíquota padrão detectada no texto. Mantendo atuais.
+[2026-07-19 03:50:01] ALTERAÇÃO DETECTADA: cbs: 8.800% -> 9.5% | ibs: 17.700% -> 18.5% | 
+[2026-07-19 03:50:15] SUCESSO: Verificação concluída. Alíquotas online conferem com as locais (9.500% CBS / 18.500% IBS). Nenhuma mudança detectada.

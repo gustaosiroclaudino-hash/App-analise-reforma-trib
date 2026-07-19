@@ -1,0 +1,16 @@
+﻿{
+    "mudancas":  [
+                     {
+                         "novo":  0.095,
+                         "campo":  "cbs",
+                         "anterior":  0.088
+                     },
+                     {
+                         "novo":  0.185,
+                         "campo":  "ibs",
+                         "anterior":  0.177
+                     }
+                 ],
+    "fonte":  "Arquivo de Teste: c:\\Users\\gu_os\\Downloads\\Projetos IA\\App-analise-reforma-trib\\dados_reforma\\html_teste_alteracao.html",
+    "data_coleta":  "2026-07-19T03:50:01Z"
+}
