@@ -1,5 +1,168 @@
 // Tax Reform Landing Page & Dashboard Application Logic
 
+const YEAR_TRANSITION_RULES = {
+    2026: {
+        description: "Fase de teste com alíquotas de 0,9% (CBS) e 0,1% (IBS) totalmente compensadas pelo PIS/Cofins. Sem impacto fiscal real na carga.",
+        pisCofins: "Vigente (100%)",
+        pisCofinsClass: "badge-primary",
+        ipi: "Vigente (100%)",
+        ipiClass: "badge-primary",
+        icmsIss: "Vigente (100%)",
+        icmsIssClass: "badge-primary",
+        cbs: "Teste (0.9% Compensado)",
+        cbsClass: "badge-success",
+        ibs: "Teste (0.1% Compensado)",
+        ibsClass: "badge-success",
+        legalNote: "Conforme a EC 132/23, 2026 serve como fase experimental sem aumento da carga para homologar sistemas.",
+        cbsRateFunc: (cbsStd) => 0.009,
+        ibsRateFunc: (ibsStd) => 0.001,
+        residualIcmsIssPct: 1.0,
+        residualPisCofinsPct: 1.0,
+        residualIpiPct: 1.0,
+        neutralized: true
+    },
+    2027: {
+        description: "Extinção do PIS/Cofins e redução do IPI a zero em regra. Início da cobrança da CBS (com red. de 0,1%) e IBS a 0,1% como transição federal.",
+        pisCofins: "Extinto",
+        pisCofinsClass: "badge-danger",
+        ipi: "Alíquota Zero (Em Regra)",
+        ipiClass: "badge-success",
+        icmsIss: "Vigente (100%)",
+        icmsIssClass: "badge-primary",
+        cbs: "Cobrança Ef. (Padrão - 0.1%)",
+        cbsClass: "badge-warning",
+        ibs: "Efetivo (0.1%)",
+        ibsClass: "badge-warning",
+        legalNote: "Entrada em vigor da CBS federal e extinção do PIS/Cofins. IPI passa a ter alíquota zero para a maioria das mercadorias.",
+        cbsRateFunc: (cbsStd) => Math.max(0, cbsStd - 0.001),
+        ibsRateFunc: (ibsStd) => 0.001,
+        residualIcmsIssPct: 1.0,
+        residualPisCofinsPct: 0.0,
+        residualIpiPct: 0.0,
+        neutralized: false
+    },
+    2028: {
+        description: "Continuidade do arranjo federal com PIS/Cofins extintos, IPI a alíquota zero e CBS ativa. IBS mantido a 0,1% antes da transição subnacional.",
+        pisCofins: "Extinto",
+        pisCofinsClass: "badge-danger",
+        ipi: "Alíquota Zero (Em Regra)",
+        ipiClass: "badge-success",
+        icmsIss: "Vigente (100%)",
+        icmsIssClass: "badge-primary",
+        cbs: "Cobrança Ef. (Padrão - 0.1%)",
+        cbsClass: "badge-warning",
+        ibs: "Efetivo (0.1%)",
+        ibsClass: "badge-warning",
+        legalNote: "Ano de consolidação do novo arranjo federal de tributação antes do início da transição de ICMS e ISS.",
+        cbsRateFunc: (cbsStd) => Math.max(0, cbsStd - 0.001),
+        ibsRateFunc: (ibsStd) => 0.001,
+        residualIcmsIssPct: 1.0,
+        residualPisCofinsPct: 0.0,
+        residualIpiPct: 0.0,
+        neutralized: false
+    },
+    2029: {
+        description: "Início da transição subnacional gradual. ICMS e ISS reduzem para 90% de sua carga original, substituídos por 10% da alíquota padrão do IBS.",
+        pisCofins: "Extinto",
+        pisCofinsClass: "badge-danger",
+        ipi: "Alíquota Zero (Em Regra)",
+        ipiClass: "badge-success",
+        icmsIss: "Reduzido a 90% (Transição)",
+        icmsIssClass: "badge-warning",
+        cbs: "Vigente (Alíquota Cheia)",
+        cbsClass: "badge-success",
+        ibs: "Transição (10% da Padrão)",
+        ibsClass: "badge-warning",
+        legalNote: "Início da substituição gradual do ICMS e ISS estaduais/municipais pelo novo IBS compartilhado.",
+        cbsRateFunc: (cbsStd) => cbsStd,
+        ibsRateFunc: (ibsStd) => ibsStd * 0.10,
+        residualIcmsIssPct: 0.90,
+        residualPisCofinsPct: 0.0,
+        residualIpiPct: 0.0,
+        neutralized: false
+    },
+    2030: {
+        description: "Avanço da transição subnacional. ICMS e ISS são reduzidos para 80%, enquanto a cobrança do IBS sobe para 20% de sua alíquota de referência.",
+        pisCofins: "Extinto",
+        pisCofinsClass: "badge-danger",
+        ipi: "Alíquota Zero (Em Regra)",
+        ipiClass: "badge-success",
+        icmsIss: "Reduzido a 80% (Transição)",
+        icmsIssClass: "badge-warning",
+        cbs: "Vigente (Alíquota Cheia)",
+        cbsClass: "badge-success",
+        ibs: "Transição (20% da Padrão)",
+        ibsClass: "badge-warning",
+        legalNote: "Proporção progressiva: a participação do IBS no bloco subnacional aumenta em 10 pontos percentuais.",
+        cbsRateFunc: (cbsStd) => cbsStd,
+        ibsRateFunc: (ibsStd) => ibsStd * 0.20,
+        residualIcmsIssPct: 0.80,
+        residualPisCofinsPct: 0.0,
+        residualIpiPct: 0.0,
+        neutralized: false
+    },
+    2031: {
+        description: "Intensificação da transição. ICMS e ISS reduzem para 70% de sua carga original, compensados por 30% da alíquota padrão do IBS.",
+        pisCofins: "Extinto",
+        pisCofinsClass: "badge-danger",
+        ipi: "Alíquota Zero (Em Regra)",
+        ipiClass: "badge-success",
+        icmsIss: "Reduzido a 70% (Transição)",
+        icmsIssClass: "badge-warning",
+        cbs: "Vigente (Alíquota Cheia)",
+        cbsClass: "badge-success",
+        ibs: "Transição (30% da Padrão)",
+        ibsClass: "badge-warning",
+        legalNote: "A convivência entre os dois sistemas continua, mas a cobrança do IBS ganha maior representatividade.",
+        cbsRateFunc: (cbsStd) => cbsStd,
+        ibsRateFunc: (ibsStd) => ibsStd * 0.30,
+        residualIcmsIssPct: 0.70,
+        residualPisCofinsPct: 0.0,
+        residualIpiPct: 0.0,
+        neutralized: false
+    },
+    2032: {
+        description: "Último ano da transição escalonada subnacional expressa no Gov.br. ICMS e ISS reduzem para 60%, e IBS atinge 40% da alíquota de referência.",
+        pisCofins: "Extinto",
+        pisCofinsClass: "badge-danger",
+        ipi: "Alíquota Zero (Em Regra)",
+        ipiClass: "badge-success",
+        icmsIss: "Reduzido a 60% (Transição)",
+        icmsIssClass: "badge-warning",
+        cbs: "Vigente (Alíquota Cheia)",
+        cbsClass: "badge-success",
+        ibs: "Transição (40% da Padrão)",
+        ibsClass: "badge-warning",
+        legalNote: "Fase final da transição gradual expressa em percentuais. A partir do próximo ano, ocorre a migração definitiva.",
+        cbsRateFunc: (cbsStd) => cbsStd,
+        ibsRateFunc: (ibsStd) => ibsStd * 0.40,
+        residualIcmsIssPct: 0.60,
+        residualPisCofinsPct: 0.0,
+        residualIpiPct: 0.0,
+        neutralized: false
+    },
+    2033: {
+        description: "Conclusão definitiva da transição tributária principal. Extinção total de ICMS e ISS. IBS e CBS operam de forma integral e plena.",
+        pisCofins: "Extinto",
+        pisCofinsClass: "badge-danger",
+        ipi: "Alíquota Zero (Em Regra)",
+        ipiClass: "badge-success",
+        icmsIss: "Extinto (Substituição Plena)",
+        icmsIssClass: "badge-danger",
+        cbs: "Vigente (Alíquota Cheia)",
+        cbsClass: "badge-success",
+        ibs: "Vigente (Alíquota Cheia)",
+        ibsClass: "badge-success",
+        legalNote: "Conforme a EC 132/2023, o IBS assume integralmente o papel do ICMS e ISS, finalizando a transição estrutural.",
+        cbsRateFunc: (cbsStd) => cbsStd,
+        ibsRateFunc: (ibsStd) => ibsStd,
+        residualIcmsIssPct: 0.0,
+        residualPisCofinsPct: 0.0,
+        residualIpiPct: 0.0,
+        neutralized: false
+    }
+};
+
 // Fallback Default Tax Rules
 const DEFAULT_RULES = {
     "aliquotas_padrao": {
@@ -109,13 +272,15 @@ let charts = {
 const themeToggle = document.getElementById('theme-toggle');
 const headerEl = document.getElementById('header');
 
-// Sliders and controls
 const cbsSlider = document.getElementById('cbs-slider');
 const cbsVal = document.getElementById('cbs-val');
 const ibsSlider = document.getElementById('ibs-slider');
 const ibsVal = document.getElementById('ibs-val');
-const transSlider = document.getElementById('trans-slider');
-const transVal = document.getElementById('trans-val');
+
+// Year Selector State and DOM elements
+let currentYear = 2026;
+const selectedYearDisplay = document.getElementById('selected-year-display');
+const yearDescription = document.getElementById('year-description');
 
 // Upload controls
 const uploadZone = document.getElementById('upload-zone');
@@ -218,9 +383,22 @@ function initEventListeners() {
         ibsVal.textContent = parseFloat(e.target.value).toFixed(1) + '%';
         recalculateAndRefresh();
     });
-    transSlider.addEventListener('input', (e) => {
-        transVal.textContent = e.target.value + '% ' + (e.target.value == 100 ? '(Novo)' : e.target.value == 0 ? '(Antigo)' : '(Transição)');
-        recalculateAndRefresh();
+
+    // Year Selector Timeline Buttons
+    const btnYears = document.querySelectorAll('.btn-year');
+    btnYears.forEach(btn => {
+        btn.addEventListener('click', () => {
+            btnYears.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentYear = parseInt(btn.getAttribute('data-year'));
+            
+            // Update display
+            selectedYearDisplay.textContent = currentYear;
+            const yearRules = YEAR_TRANSITION_RULES[currentYear];
+            yearDescription.textContent = yearRules.description;
+
+            recalculateAndRefresh();
+        });
     });
 
     // File Drag and Drop / Select
@@ -558,7 +736,7 @@ function matchRule(ncm, productName) {
 function recalculateAndRefresh() {
     const cbsStd = parseFloat(cbsSlider.value) / 100;
     const ibsStd = parseFloat(ibsSlider.value) / 100;
-    const transPct = parseFloat(transSlider.value) / 100;
+    const yearRules = YEAR_TRANSITION_RULES[currentYear];
 
     analyzedSales = rawSales.map(sale => {
         // Calculate old total tax burden
@@ -591,25 +769,42 @@ function recalculateAndRefresh() {
             }
         }
 
-        // Calculate CBS & IBS values based on the slider state
-        const cbsRate = cbsStd * cbsFactor;
-        const ibsRate = ibsStd * ibsFactor;
+        // Calculate CBS & IBS values based on the year rules
+        const cbsRate = yearRules.cbsRateFunc(cbsStd) * cbsFactor;
+        const ibsRate = yearRules.ibsRateFunc(ibsStd) * ibsFactor;
 
         const baseValue = Math.max(0, sale.valor_total - taxCurrent);
         const cbsValCalculated = baseValue * cbsRate;
         const ibsValCalculated = baseValue * ibsRate;
-        const taxNewNominal = cbsValCalculated + ibsValCalculated;
+
+        // Calculate residual taxes for this year
+        const tax_pis_res = (sale.pis_atual || 0) * yearRules.residualPisCofinsPct;
+        const tax_cofins_res = (sale.cofins_atual || 0) * yearRules.residualPisCofinsPct;
+        const tax_ipi_res = (sale.ipi_atual || 0) * yearRules.residualIpiPct;
+        const tax_icms_res = (sale.icms_atual || 0) * yearRules.residualIcmsIssPct;
+        const tax_iss_res = (sale.iss_atual || 0) * yearRules.residualIcmsIssPct;
 
         // Apply transition scenario
-        // Tax = OldTax * (1 - Transition%) + NewTaxNominal * Transition%
-        const taxNew = (taxCurrent * (1 - transPct)) + (taxNewNominal * transPct);
+        let taxNew;
+        if (yearRules.neutralized) {
+            // CBS & IBS are experimental and compensated, keeping the original tax burden paid
+            taxNew = taxCurrent;
+        } else {
+            taxNew = cbsValCalculated + ibsValCalculated + tax_pis_res + tax_cofins_res + tax_ipi_res + tax_icms_res + tax_iss_res;
+        }
+        
         const taxDiff = taxNew - taxCurrent;
 
         return {
             ...sale,
             tax_current: taxCurrent,
-            tax_cbs: cbsValCalculated * transPct,
-            tax_ibs: ibsValCalculated * transPct,
+            tax_cbs: cbsValCalculated,
+            tax_ibs: ibsValCalculated,
+            tax_pis_res: tax_pis_res,
+            tax_cofins_res: tax_cofins_res,
+            tax_ipi_res: tax_ipi_res,
+            tax_icms_res: tax_icms_res,
+            tax_iss_res: tax_iss_res,
             tax_new: taxNew,
             tax_diff: taxDiff,
             status_regra: ruleDescription,
@@ -668,7 +863,7 @@ function updateCharts() {
 
     // Compute aggregation data
     let currentTaxesSum = { pis: 0, cofins: 0, icms: 0, iss: 0, ipi: 0 };
-    let newTaxesSum = { cbs: 0, ibs: 0 };
+    let newTaxesSum = { cbs: 0, ibs: 0, pis: 0, cofins: 0, icms: 0, iss: 0, ipi: 0 };
 
     // Regional data grouping
     let regionalMap = {};
@@ -684,6 +879,11 @@ function updateCharts() {
 
         newTaxesSum.cbs += sale.tax_cbs || 0;
         newTaxesSum.ibs += sale.tax_ibs || 0;
+        newTaxesSum.pis += sale.tax_pis_res || 0;
+        newTaxesSum.cofins += sale.tax_cofins_res || 0;
+        newTaxesSum.icms += sale.tax_icms_res || 0;
+        newTaxesSum.iss += sale.tax_iss_res || 0;
+        newTaxesSum.ipi += sale.tax_ipi_res || 0;
 
         // Region (UF destino)
         const uf = sale.uf_destino || "Indefinido";
@@ -720,8 +920,13 @@ function updateCharts() {
                 name: 'Tributos Propostos (Reforma)',
                 data: [
                     { x: 'CBS (Federal)', y: Math.round(newTaxesSum.cbs) },
-                    { x: 'IBS (Est/Mun)', y: Math.round(newTaxesSum.ibs) }
-                ]
+                    { x: 'IBS (Est/Mun)', y: Math.round(newTaxesSum.ibs) },
+                    { x: 'PIS (Residual)', y: Math.round(newTaxesSum.pis) },
+                    { x: 'COFINS (Residual)', y: Math.round(newTaxesSum.cofins) },
+                    { x: 'ICMS (Residual)', y: Math.round(newTaxesSum.icms) },
+                    { x: 'ISS (Residual)', y: Math.round(newTaxesSum.iss) },
+                    { x: 'IPI (Residual)', y: Math.round(newTaxesSum.ipi) }
+                ].filter(item => item.y > 0 || item.x === 'CBS (Federal)' || item.x === 'IBS (Est/Mun)')
             }
         ],
         chart: {
@@ -932,7 +1137,6 @@ function renderTable() {
     lucide.createIcons();
 }
 
-// Single item quick simulator logic
 function updateSingleSimulator() {
     const name = simProductName.value;
     const ncm = simNcm.value;
@@ -941,42 +1145,66 @@ function updateSingleSimulator() {
 
     const cbsStd = parseFloat(cbsSlider.value) / 100;
     const ibsStd = parseFloat(ibsSlider.value) / 100;
+    const yearRules = YEAR_TRANSITION_RULES[currentYear];
 
-    // Simulate old tax based on realistic average (approx 24% for general goods)
-    // We try to pull from matching items in active CSV, or fallback to 24% standard current rate
-    let currentRate = 0.2425; 
-    
-    // Attempt to pull actual rate from active CSV matching by NCM or name
+    // Retrieve breakdown of current taxes
+    let pisVal = 0, cofinsVal = 0, icmsVal = 0, issVal = 0, ipiVal = 0;
+    let foundMatch = false;
+
     if (analyzedSales && analyzedSales.length > 0) {
         const cleanNcm = String(ncm || "").replace(/\D/g, "");
         const match = analyzedSales.find(s => 
             (cleanNcm && s.ncm_codigo === cleanNcm) || 
             (name && String(s.produto_nome).toLowerCase().trim() === String(name).toLowerCase().trim())
         );
-        if (match && match.valor_total > 0) {
-            currentRate = match.tax_current / match.valor_total;
+        if (match) {
+            const scale = match.valor_total > 0 ? (totalVal / match.valor_total) : 1;
+            pisVal = (match.pis_atual || 0) * scale;
+            cofinsVal = (match.cofins_atual || 0) * scale;
+            icmsVal = (match.icms_atual || 0) * scale;
+            issVal = (match.iss_atual || 0) * scale;
+            ipiVal = (match.ipi_atual || 0) * scale;
+            foundMatch = true;
         }
     }
-    
-    // Check if the simulator inputs match a rule
-    let cbsFactor = 1.0;
-    let ibsFactor = 1.0;
 
-    if (ruleTypeSelect === 'isento') {
-        cbsFactor = 0.0;
-        ibsFactor = 0.0;
-        currentRate = 0.0; // Food products in Brazil generally have very low/zero current taxes
-    } else if (ruleTypeSelect === 'reducao_60') {
-        cbsFactor = 0.4;
-        ibsFactor = 0.4;
-        currentRate = 0.12; // Educ/Medicines generally have reduced current taxes as well
+    if (!foundMatch) {
+        if (ruleTypeSelect === 'isento') {
+            // all 0
+        } else if (ruleTypeSelect === 'reducao_60') {
+            icmsVal = totalVal * 0.12; // 12% standard reduced
+        } else {
+            pisVal = totalVal * 0.0165;
+            cofinsVal = totalVal * 0.0760;
+            icmsVal = totalVal * 0.1500;
+        }
     }
 
-    const currentTax = totalVal * currentRate;
+    const currentTax = pisVal + cofinsVal + icmsVal + issVal + ipiVal;
     const valorLiquido = Math.max(0, totalVal - currentTax);
-    const simCbs = valorLiquido * cbsStd * cbsFactor;
-    const simIbs = valorLiquido * ibsStd * ibsFactor;
-    const newTax = simCbs + simIbs;
+    
+    // Calculate CBS & IBS values based on the year rules
+    const cbsFactor = ruleTypeSelect === 'isento' ? 0.0 : (ruleTypeSelect === 'reducao_60' ? 0.4 : 1.0);
+    const ibsFactor = ruleTypeSelect === 'isento' ? 0.0 : (ruleTypeSelect === 'reducao_60' ? 0.4 : 1.0);
+    
+    const cbsRate = yearRules.cbsRateFunc(cbsStd) * cbsFactor;
+    const ibsRate = yearRules.ibsRateFunc(ibsStd) * ibsFactor;
+    
+    const simCbs = valorLiquido * cbsRate;
+    const simIbs = valorLiquido * ibsRate;
+
+    // Calculate residual taxes for this year
+    const pisCofinsRes = (pisVal + cofinsVal) * yearRules.residualPisCofinsPct;
+    const ipiRes = ipiVal * yearRules.residualIpiPct;
+    const icmsIssRes = (icmsVal + issVal) * yearRules.residualIcmsIssPct;
+
+    // Final tax burden for the year
+    let newTax;
+    if (yearRules.neutralized) {
+        newTax = currentTax;
+    } else {
+        newTax = simCbs + simIbs + pisCofinsRes + ipiRes + icmsIssRes;
+    }
 
     const diff = newTax - currentTax;
     const diffPct = currentTax > 0 ? (diff / currentTax) * 100 : 0;
@@ -987,24 +1215,66 @@ function updateSingleSimulator() {
     if (simTaxIbsEl) simTaxIbsEl.textContent = formatCurrency(simIbs);
     if (simTaxNewEl) simTaxNewEl.textContent = formatCurrency(newTax);
 
-    // Update step-by-step panel elements
-    const stepTotalValEl = document.getElementById('step-total-val');
-    const stepTaxCurrentEl = document.getElementById('step-tax-current');
-    const stepNetValEl = document.getElementById('step-net-val');
-    const stepCbsRateEl = document.getElementById('step-cbs-rate');
-    const stepCbsValEl = document.getElementById('step-cbs-val');
-    const stepIbsRateEl = document.getElementById('step-ibs-rate');
-    const stepIbsValEl = document.getElementById('step-ibs-val');
-    const stepNewTaxEl = document.getElementById('step-new-tax');
+    // Update step-by-step panel elements dynamically
+    const simCalcStepsEl = document.getElementById('sim-calc-steps');
+    if (simCalcStepsEl) {
+        let stepsHTML = `
+            <div style="font-weight: 600; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="calculator" style="width: 14px; height: 14px;"></i>
+                Memória de Cálculo (${currentYear})
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary);">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>1. Valor Total do Item:</span>
+                    <strong style="color: var(--text-primary);">${formatCurrency(totalVal)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>2. (-) Carga de Origem Extinta:</span>
+                    <strong style="color: var(--warning);">- ${formatCurrency(pisVal + cofinsVal + ipiVal + (currentYear === 2033 ? (icmsVal + issVal) : 0))}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 6px; color: var(--text-primary);">
+                    <span>(=) Base de Cálculo Líquida:</span>
+                    <strong>${formatCurrency(valorLiquido)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>3. (+) CBS Projetada (${(cbsRate * 100).toFixed(1)}%):</span>
+                    <strong style="color: var(--text-primary);">+ ${formatCurrency(simCbs)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>4. (+) IBS Projetado (${(ibsRate * 100).toFixed(1)}%):</span>
+                    <strong style="color: var(--text-primary);">+ ${formatCurrency(simIbs)}</strong>
+                </div>
+        `;
 
-    if (stepTotalValEl) stepTotalValEl.textContent = formatCurrency(totalVal);
-    if (stepTaxCurrentEl) stepTaxCurrentEl.textContent = '- ' + formatCurrency(currentTax);
-    if (stepNetValEl) stepNetValEl.textContent = formatCurrency(valorLiquido);
-    if (stepCbsRateEl) stepCbsRateEl.textContent = (cbsStd * cbsFactor * 100).toFixed(1) + '%';
-    if (stepCbsValEl) stepCbsValEl.textContent = '+ ' + formatCurrency(simCbs);
-    if (stepIbsRateEl) stepIbsRateEl.textContent = (ibsStd * ibsFactor * 100).toFixed(1) + '%';
-    if (stepIbsValEl) stepIbsValEl.textContent = '+ ' + formatCurrency(simIbs);
-    if (stepNewTaxEl) stepNewTaxEl.textContent = formatCurrency(newTax);
+        if (yearRules.neutralized) {
+            stepsHTML += `
+                <div style="display: flex; justify-content: space-between;">
+                    <span>5. (-) Compensação de Teste (neutralizado):</span>
+                    <strong style="color: var(--success);">- ${formatCurrency(simCbs + simIbs)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>6. (+) Impostos Vigentes no Ano (100%):</span>
+                    <strong style="color: var(--text-primary);">+ ${formatCurrency(currentTax)}</strong>
+                </div>
+            `;
+        } else if (currentYear !== 2033) {
+            stepsHTML += `
+                <div style="display: flex; justify-content: space-between;">
+                    <span>5. (+) ICMS/ISS Residuais (${(yearRules.residualIcmsIssPct * 100).toFixed(0)}%):</span>
+                    <strong style="color: var(--text-primary);">+ ${formatCurrency(icmsIssRes)}</strong>
+                </div>
+            `;
+        }
+
+        stepsHTML += `
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 6px; color: var(--text-primary); font-weight: 600;">
+                    <span>(=) Carga Efetiva no Ano:</span>
+                    <strong style="color: var(--text-primary);">${formatCurrency(newTax)}</strong>
+                </div>
+            </div>
+        `;
+        simCalcStepsEl.innerHTML = stepsHTML;
+    }
 
     simImpactVal.textContent = (diff >= 0 ? '+' : '') + formatCurrency(diff);
     
@@ -1021,6 +1291,42 @@ function updateSingleSimulator() {
         simImpactPct.textContent = '(Sem variação de carga)';
         simImpactPct.style.color = 'var(--text-muted)';
     }
+
+    // Update changes summary card
+    const summaryYearEl = document.getElementById('summary-year');
+    const summaryDetailsTextEl = document.getElementById('summary-details-text');
+    const compPisCofinsEl = document.getElementById('comparison-pis-cofins');
+    const compIpiEl = document.getElementById('comparison-ipi');
+    const compIcmsIssEl = document.getElementById('comparison-icms-iss');
+    const compCbsEl = document.getElementById('comparison-cbs');
+    const compIbsEl = document.getElementById('comparison-ibs');
+
+    if (summaryYearEl) summaryYearEl.textContent = currentYear;
+    if (summaryDetailsTextEl) summaryDetailsTextEl.textContent = yearRules.description;
+    
+    if (compPisCofinsEl) {
+        compPisCofinsEl.textContent = yearRules.pisCofins;
+        compPisCofinsEl.className = 'badge ' + yearRules.pisCofinsClass;
+    }
+    if (compIpiEl) {
+        compIpiEl.textContent = yearRules.ipi;
+        compIpiEl.className = 'badge ' + yearRules.ipiClass;
+    }
+    if (compIcmsIssEl) {
+        compIcmsIssEl.textContent = yearRules.icmsIss;
+        compIcmsIssEl.className = 'badge ' + yearRules.icmsIssClass;
+    }
+    if (compCbsEl) {
+        compCbsEl.textContent = yearRules.cbs;
+        compCbsEl.className = 'badge ' + yearRules.cbsClass;
+    }
+    if (compIbsEl) {
+        compIbsEl.textContent = yearRules.ibs;
+        compIbsEl.className = 'badge ' + yearRules.ibsClass;
+    }
+
+    // Recreate icons in simulation breakdown
+    lucide.createIcons();
 }
 
 // Format regras_aliquotas.json display

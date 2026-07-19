@@ -192,6 +192,49 @@
                         </div>
                     </div>
 
+                    <!-- Transition Rules & Changes Card -->
+                    <div class="card sim-changes-card" id="sim-changes-overview">
+                        <div class="sim-result-header" style="text-align: left; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+                            <span class="title">Resumo da Transição: <span id="summary-year" style="color: var(--accent); font-weight: 700;">2026</span></span>
+                            <h3 style="font-size: 18px; font-weight: 700; margin-top: 6px; color: var(--text-primary);">O que muda neste ano?</h3>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+                            <p id="summary-details-text" style="color: var(--text-secondary); line-height: 1.5; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 4px;">
+                                Em 2026, iniciam-se os testes do IBS e CBS. Não há acréscimo real na carga tributária total, pois os novos impostos são totalmente compensados.
+                            </p>
+                            
+                            <div class="tax-comparison-list" style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border-color);">
+                                    <span style="font-weight: 500; color: var(--text-secondary);">PIS / COFINS</span>
+                                    <span id="comparison-pis-cofins" class="badge badge-primary">Vigente (100%)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border-color);">
+                                    <span style="font-weight: 500; color: var(--text-secondary);">IPI (Federal)</span>
+                                    <span id="comparison-ipi" class="badge badge-primary">Vigente (100%)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border-color);">
+                                    <span style="font-weight: 500; color: var(--text-secondary);">ICMS / ISS</span>
+                                    <span id="comparison-icms-iss" class="badge badge-primary">Vigente (100%)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border-color);">
+                                    <span style="font-weight: 500; color: var(--text-secondary);">CBS (Federal)</span>
+                                    <span id="comparison-cbs" class="badge badge-success">Teste (0.9% Compensado)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border-color);">
+                                    <span style="font-weight: 500; color: var(--text-secondary);">IBS (Est/Mun)</span>
+                                    <span id="comparison-ibs" class="badge badge-success">Teste (0.1% Compensado)</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 8px; padding: 12px; background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.15); border-radius: 8px; color: var(--text-secondary); line-height: 1.4; display: flex; align-items: flex-start; gap: 8px;">
+                                <i data-lucide="info" style="width: 16px; height: 16px; color: var(--secondary); flex-shrink: 0; margin-top: 2px;"></i>
+                                <span id="summary-legal-note" style="font-size: 11px;">
+                                    Conforme a EC 132/2023 e a LC 214/2025, os impostos em teste servem para homologar os sistemas e compensar contra as obrigações de PIS/Cofins.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -252,14 +295,23 @@
                             <input type="range" id="ibs-slider" class="slider-input" min="0" max="30" step="0.1" value="17.7">
                         </div>
 
-                        <!-- Transition Slider -->
+                        <!-- Year Selector Timeline -->
                         <div class="control-group">
                             <div class="control-header">
-                                <label for="trans-slider">Cenário de Transição</label>
-                                <span id="trans-val" class="value">100% (Novo)</span>
+                                <label>Cronograma de Transição</label>
+                                <span id="selected-year-display" class="value" style="background: var(--accent); color: white; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);">2026</span>
                             </div>
-                            <input type="range" id="trans-slider" class="slider-input" min="0" max="100" step="5" value="100">
-                            <p style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Ajuste para simular a transição gradativa de tributação ao longo dos anos.</p>
+                            <div class="year-selector-timeline">
+                                <button class="btn-year active" data-year="2026">26</button>
+                                <button class="btn-year" data-year="2027">27</button>
+                                <button class="btn-year" data-year="2028">28</button>
+                                <button class="btn-year" data-year="2029">29</button>
+                                <button class="btn-year" data-year="2030">30</button>
+                                <button class="btn-year" data-year="2031">31</button>
+                                <button class="btn-year" data-year="2032">32</button>
+                                <button class="btn-year" data-year="2033">33</button>
+                            </div>
+                            <p id="year-description" style="font-size: 11px; color: var(--text-secondary); margin-top: 10px; line-height: 1.4;">Fase de teste com alíquotas reduzidas (CBS 0,9% e IBS 0,1%) totalmente compensadas por PIS/Cofins.</p>
                         </div>
                     </aside>
 

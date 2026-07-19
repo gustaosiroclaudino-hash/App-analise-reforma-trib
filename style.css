@@ -825,3 +825,75 @@ footer a:hover {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Year Selector Timeline */
+.year-selector-timeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    background: rgba(9, 13, 22, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 4px;
+    justify-content: space-between;
+}
+
+.btn-year {
+    flex: 1;
+    min-width: 28px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-family: var(--font-family);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-year:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.btn-year.active {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+body.light-mode .year-selector-timeline {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+body.light-mode .btn-year:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .btn-year.active {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+/* 3-Column layout for Simulator grid on large screens */
+@media (min-width: 1200px) {
+    .quick-simulator .sim-grid {
+        grid-template-columns: 1.1fr 0.95fr 0.95fr;
+        align-items: stretch;
+    }
+}
+@media (max-width: 1199px) and (min-width: 993px) {
+    .quick-simulator .sim-grid {
+        grid-template-columns: 1fr 1fr;
+        align-items: stretch;
+    }
+    .sim-changes-card {
+        grid-column: 1 / -1;
+    }
+}
+
