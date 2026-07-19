@@ -1,0 +1,3 @@
+[2026-07-19 03:44:05] SUCESSO: Conexão efetuada. Nenhuma alíquota padrão detectada no texto. Mantendo atuais.
+[2026-07-19 03:44:45] ALTERAÇÃO DETECTADA: cbs: 8.800% -> 9.5% | ibs: 17.700% -> 18.5% | 
+[2026-07-19 03:45:43] SUCESSO: Conexão efetuada. Nenhuma alíquota padrão detectada no texto. Mantendo atuais.

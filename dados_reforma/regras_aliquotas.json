@@ -1,0 +1,46 @@
+{
+  "aliquotas_padrao": {
+    "cbs": 0.088,
+    "ibs": 0.177,
+    "total": 0.265
+  },
+  "regras_especiais": [
+    {
+      "ncm_codigo": "10063021",
+      "produto_nome": "Arroz",
+      "tipo_regra": "isento",
+      "fator_reducao": 1.0,
+      "descricao": "Cesta Básica Nacional - Alíquota zero de CBS e IBS."
+    },
+    {
+      "ncm_codigo": "07133399",
+      "produto_nome": "Feijao",
+      "tipo_regra": "isento",
+      "fator_reducao": 1.0,
+      "descricao": "Cesta Básica Nacional - Alíquota zero de CBS e IBS."
+    },
+    {
+      "ncm_codigo": "04012010",
+      "produto_nome": "Leite",
+      "tipo_regra": "isento",
+      "fator_reducao": 1.0,
+      "descricao": "Cesta Básica Nacional - Alíquota zero de CBS e IBS."
+    },
+    {
+      "ncm_codigo": "30049025",
+      "produto_nome": "Medicamentos",
+      "tipo_regra": "reducao_60",
+      "fator_reducao": 0.6,
+      "descricao": "Alíquota de CBS e IBS reduzida em 60%."
+    },
+    {
+      "ncm_codigo": "99010000",
+      "produto_nome": "Educacao",
+      "tipo_regra": "reducao_60",
+      "fator_reducao": 0.6,
+      "descricao": "Alíquota de CBS e IBS reduzida em 60% para serviços de educação."
+    }
+  ],
+  "ultima_atualizacao": "2026-07-19T03:32:00Z",
+  "fonte_oficial": "https://www.gov.br/fazenda/pt-br/assuntos/reforma-tributaria"
+}
