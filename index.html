@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise da Reforma Tributária - IBS & CBS</title>
+    <meta name="description" content="Simule o impacto da reforma tributária brasileira nas notas fiscais de sua empresa em tempo real. Veja as projeções do IBS e CBS.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <header id="header">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <i data-lucide="calculator"></i>
+                TaxReform.AI
+            </a>
+            <ul class="nav-links">
+                <li><a href="#inicio" class="active">Início</a></li>
+                <li><a href="#diferenciais">Diferenciais</a></li>
+                <li><a href="#simulador-rapido">Simulador Rápido</a></li>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#parametros">Regras</a></li>
+            </ul>
+            <div class="header-actions">
+                <button id="theme-toggle" class="theme-toggle" title="Alternar tema">
+                    <i data-lucide="sun"></i>
+                </button>
+                <a href="#dashboard" class="btn btn-primary">
+                    <i data-lucide="bar-chart-3"></i>
+                    Simular NFe
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        
+        <!-- Hero Section -->
+        <section id="inicio" class="hero">
+            <div class="glow-bg glow-top-right"></div>
+            <div class="glow-bg glow-bottom-left"></div>
+            <div class="container">
+                <div class="badge-intro">
+                    <i data-lucide="sparkles"></i>
+                    Simulador Inteligente PEC 45/2019
+                </div>
+                <h1>Descomplique o Impacto da <span>Reforma Tributária</span> na sua Empresa</h1>
+                <p>Monitore, recalcule e compare instantaneamente a transição da carga tributária atual (PIS, COFINS, ICMS, ISS e IPI) para o novo modelo de IBS e CBS sobre suas notas fiscais eletrônicas.</p>
+                <div class="hero-cta">
+                    <a href="#dashboard" class="btn btn-primary btn-lg">
+                        <i data-lucide="upload"></i>
+                        Carregar Minhas NFes
+                    </a>
+                    <a href="#simulador-rapido" class="btn btn-secondary btn-lg">
+                        Simulação Rápida
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="diferenciais" class="features">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Diferenciais do Nosso Analisador</h2>
+                    <p>Uma ferramenta projetada para diretores financeiros, contadores e administradores de empresas.</p>
+                </div>
+                <div class="grid features-grid">
+                    
+                    <div class="card feature-card fade-in">
+                        <div class="feature-icon">
+                            <i data-lucide="file-spreadsheet"></i>
+                        </div>
+                        <h3>Leitura Dinâmica de Notas Fiscais</h3>
+                        <p>Arraste e solte arquivos CSV de vendas. O analisador processa a base de dados em segundos, gerando relatórios completos e consolidados.</p>
+                    </div>
+
+                    <div class="card feature-card fade-in">
+                        <div class="feature-icon">
+                            <i data-lucide="sliders"></i>
+                        </div>
+                        <h3>Simulação Dinâmica de Alíquotas</h3>
+                        <p>Ajuste as porcentagens do IBS e CBS padrão ou o estágio do período de transição usando controles deslizantes para prever o faturamento real futuro.</p>
+                    </div>
+
+                    <div class="card feature-card fade-in">
+                        <div class="feature-icon">
+                            <i data-lucide="shield-check"></i>
+                        </div>
+                        <h3>Validação Automática por NCM</h3>
+                        <p>O algoritmo identifica automaticamente os códigos NCM de isenção integral da Cesta Básica ou alíquota reduzida em 60% (Educação, Saúde, etc.).</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Simulator Section -->
+        <section id="simulador-rapido" class="quick-simulator">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Simulador de Item Individual</h2>
+                    <p>Calcule instantaneamente o impacto tributário estimado para um único produto ou serviço.</p>
+                </div>
+                <div class="grid sim-grid">
+                    
+                    <!-- Form -->
+                    <div class="card sim-form-container">
+                        <div class="form-group">
+                            <label for="sim-product-name">Nome do Produto / Serviço</label>
+                            <input type="text" id="sim-product-name" class="form-input" placeholder="Ex: Smartphone Android, Arroz, Medicamento" value="Notebook Pro">
+                        </div>
+                        <div class="form-group">
+                            <label for="sim-ncm">Código NCM (8 dígitos)</label>
+                            <input type="text" id="sim-ncm" class="form-input" placeholder="Ex: 84713012" value="84713012">
+                        </div>
+                        <div class="form-group">
+                            <label for="sim-value">Valor Total do Item (R$)</label>
+                            <input type="number" id="sim-value" class="form-input" placeholder="Ex: 1000.00" value="4500">
+                        </div>
+                        <div class="form-group">
+                            <label for="sim-rule-type">Tipo de Regra Aplicável</label>
+                            <select id="sim-rule-type" class="form-input">
+                                <option value="padrao">Alíquota Cheia (Padrão)</option>
+                                <option value="isento">Cesta Básica Nacional (Isento)</option>
+                                <option value="reducao_60">Alíquota Reduzida (Redução 60%)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Result Display -->
+                    <div class="card sim-result-card">
+                        <div class="sim-result-header">
+                            <span class="title">Impacto da Reforma</span>
+                            <div id="sim-impact-val" class="sim-impact-value neutral">R$ 0,00</div>
+                            <span id="sim-impact-pct" style="font-size: 14px; font-weight: 500;">(0.00%)</span>
+                        </div>
+                        <div>
+                            <div class="sim-detail-row">
+                                <span>Carga Tributária Atual (PIS/COFINS/ICMS/ISS/IPI)</span>
+                                <span id="sim-tax-current">R$ 0,00</span>
+                            </div>
+                            <div class="sim-detail-row">
+                                <span>CBS Projetada</span>
+                                <span id="sim-tax-cbs">R$ 0,00</span>
+                            </div>
+                            <div class="sim-detail-row">
+                                <span>IBS Projetado</span>
+                                <span id="sim-tax-ibs">R$ 0,00</span>
+                            </div>
+                            <div class="sim-detail-row" style="border-bottom: none; font-weight: 700; color: var(--text-primary)">
+                                <span>Nova Carga Total (IBS + CBS)</span>
+                                <span id="sim-tax-new">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="dashboard-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Dashboard de Análise e Projeção</h2>
+                    <p>Carregue dados de notas fiscais e analise a mudança de impostos em lotes e gráficos agregados.</p>
+                </div>
+                
+                <div class="dash-layout">
+                    
+                    <!-- Sidebar Controls -->
+                    <aside class="card dash-sidebar">
+                        <div class="sidebar-title">
+                            <i data-lucide="sliders-horizontal" style="color: var(--primary);"></i>
+                            Configurações da Simulação
+                        </div>
+                        
+                        <!-- File Upload -->
+                        <div class="control-group">
+                            <div id="upload-zone" class="upload-zone">
+                                <i data-lucide="upload-cloud"></i>
+                                <h4>Carregar CSV de Vendas</h4>
+                                <p>Arraste seu arquivo ou clique para escolher</p>
+                                <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+                            </div>
+                            
+                            <!-- DB Status -->
+                            <div class="db-status-bar">
+                                <span id="status-dot" class="status-indicator warning"></span>
+                                <span id="status-text">Carregando base padrão...</span>
+                            </div>
+
+                            <button id="btn-load-default" class="btn btn-secondary" style="width: 100%; margin-top: 12px; font-size: 13px;">
+                                <i data-lucide="rotate-ccw"></i>
+                                Carregar Exemplo Local
+                            </button>
+                        </div>
+
+                        <!-- CBS Slider -->
+                        <div class="control-group">
+                            <div class="control-header">
+                                <label for="cbs-slider">CBS Padrão (Federal)</label>
+                                <span id="cbs-val" class="value">8.8%</span>
+                            </div>
+                            <input type="range" id="cbs-slider" class="slider-input" min="0" max="20" step="0.1" value="8.8">
+                        </div>
+
+                        <!-- IBS Slider -->
+                        <div class="control-group">
+                            <div class="control-header">
+                                <label for="ibs-slider">IBS Padrão (Estadual/Mun.)</label>
+                                <span id="ibs-val" class="value">17.7%</span>
+                            </div>
+                            <input type="range" id="ibs-slider" class="slider-input" min="0" max="30" step="0.1" value="17.7">
+                        </div>
+
+                        <!-- Transition Slider -->
+                        <div class="control-group">
+                            <div class="control-header">
+                                <label for="trans-slider">Cenário de Transição</label>
+                                <span id="trans-val" class="value">100% (Novo)</span>
+                            </div>
+                            <input type="range" id="trans-slider" class="slider-input" min="0" max="100" step="5" value="100">
+                            <p style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Ajuste para simular a transição gradativa de tributação ao longo dos anos.</p>
+                        </div>
+                    </aside>
+
+                    <!-- Main Dashboard Area -->
+                    <div class="dash-main">
+                        
+                        <!-- KPIs -->
+                        <div class="grid kpi-grid">
+                            
+                            <div class="card kpi-card">
+                                <div class="kpi-title">Faturamento Analisado</div>
+                                <div id="kpi-revenue" class="kpi-value">R$ 0,00</div>
+                                <div id="kpi-count" class="kpi-subtitle">0 notas fiscais</div>
+                            </div>
+
+                            <div class="card kpi-card">
+                                <div class="kpi-title">Carga Tributária Atual</div>
+                                <div id="kpi-tax-current" class="kpi-value">R$ 0,00</div>
+                                <div id="kpi-tax-current-pct" class="kpi-subtitle">Alíquota média: 0.00%</div>
+                            </div>
+
+                            <div class="card kpi-card">
+                                <div class="kpi-title">Carga Tributária Nova</div>
+                                <div id="kpi-tax-new" class="kpi-value">R$ 0,00</div>
+                                <div id="kpi-tax-new-pct" class="kpi-subtitle">Alíquota média: 0.00%</div>
+                            </div>
+
+                            <div class="card kpi-card">
+                                <div class="kpi-title">Impacto Líquido</div>
+                                <div id="kpi-tax-diff" class="kpi-value">R$ 0,00</div>
+                                <div id="kpi-tax-diff-trend" class="kpi-subtitle">
+                                    <span class="kpi-trend">0.00%</span> da carga
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="grid charts-grid">
+                            
+                            <!-- Chart 1: Distribution -->
+                            <div class="card">
+                                <div class="chart-header">
+                                    <h3>Distribuição e Comparativo de Impostos (R$)</h3>
+                                    <i data-lucide="pie-chart" style="color: var(--text-muted);"></i>
+                                </div>
+                                <div id="chart-distribution" class="chart-container"></div>
+                            </div>
+
+                            <!-- Chart 2: Product impact -->
+                            <div class="card">
+                                <div class="chart-header">
+                                    <h3>Carga Tributária por Produto (Atual vs Nova)</h3>
+                                    <i data-lucide="bar-chart-2" style="color: var(--text-muted);"></i>
+                                </div>
+                                <div id="chart-products" class="chart-container"></div>
+                            </div>
+
+                            <!-- Chart 3: Regional -->
+                            <div class="card" style="grid-column: span 2;">
+                                <div class="chart-header">
+                                    <h3>Distribuição Regional e Variação por UF (Destino)</h3>
+                                    <i data-lucide="globe" style="color: var(--text-muted);"></i>
+                                </div>
+                                <div id="chart-regional" class="chart-container"></div>
+                            </div>
+
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="card table-card">
+                            <div class="table-header">
+                                <h3>Itens das Notas Fiscais</h3>
+                                <div class="table-controls">
+                                    <input type="text" id="table-search" class="table-search" placeholder="Buscar produto ou NCM...">
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table id="sales-table">
+                                    <thead>
+                                        <tr>
+                                            <th data-sort="id_nfe">ID NFe <i data-lucide="chevrons-up-down"></i></th>
+                                            <th data-sort="produto_nome">Produto <i data-lucide="chevrons-up-down"></i></th>
+                                            <th data-sort="ncm_codigo">NCM <i data-lucide="chevrons-up-down"></i></th>
+                                            <th data-sort="uf_destino">UF Dest. <i data-lucide="chevrons-up-down"></i></th>
+                                            <th data-sort="valor_total">Valor Total <i data-lucide="chevrons-up-down"></i></th>
+                                            <th data-sort="tax_current">Imp. Atual <i data-lucide="chevrons-up-down"></i></th>
+                                            <th data-sort="tax_new">Imp. Novo <i data-lucide="chevrons-up-down"></i></th>
+                                            <th data-sort="tax_diff">Impacto <i data-lucide="chevrons-up-down"></i></th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sales-table-body">
+                                        <!-- Rows generated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Rules & Parameters Section -->
+        <section id="parametros" class="rules-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Regras Legais e Alíquotas Carregadas</h2>
+                    <p>Monitore os parâmetros oficiais em vigor e adicione regras provisórias para simulação.</p>
+                </div>
+                
+                <div class="grid rules-grid">
+                    
+                    <!-- View rules JSON -->
+                    <div class="card">
+                        <div class="chart-header" style="margin-bottom: 20px;">
+                            <h3>Parâmetros Atuais do Sistema (regras_aliquotas.json)</h3>
+                            <i data-lucide="file-code" style="color: var(--success);"></i>
+                        </div>
+                        <div id="json-viewer" class="json-viewer">
+                            <!-- JSON populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Add custom rule simulator -->
+                    <div class="card">
+                        <div class="chart-header" style="margin-bottom: 20px;">
+                            <h3>Criar Regra de Exceção Provisória</h3>
+                            <i data-lucide="plus-circle" style="color: var(--primary);"></i>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Adicione regras para novos NCMs ou categorias de produtos de forma dinâmica e veja o recálculo imediato do Dashboard.</p>
+                        
+                        <div class="form-group">
+                            <label for="rule-ncm">Código NCM Alvo (8 dígitos)</label>
+                            <input type="text" id="rule-ncm" class="form-input" placeholder="Ex: 85171300" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="rule-name">Descrição da Regra</label>
+                            <input type="text" id="rule-name" class="form-input" placeholder="Ex: Isenção temporária de smartphones" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="rule-type">Tipo de Exceção</label>
+                            <select id="rule-type" class="form-input">
+                                <option value="isento">Isento (Fator de Redução 1.0)</option>
+                                <option value="reducao_60">Redução de 60% (Fator de Redução 0.6)</option>
+                                <option value="reducao_30">Redução de 30% (Fator de Redução 0.3)</option>
+                            </select>
+                        </div>
+                        <button id="btn-add-rule" class="btn btn-primary" style="width: 100%;">
+                            <i data-lucide="save"></i>
+                            Aplicar Regra Temporária
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 TaxReform.AI - Simulador de Impacto Tributário Brasileiro.</p>
+            <p style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+                Baseado nas diretrizes da PEC 45/2019. Fonte oficial de dados: 
+                <a href="https://www.gov.br/fazenda/pt-br/assuntos/reforma-tributaria" target="_blank">gov.br/fazenda</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.359.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    
+    <!-- Custom Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
