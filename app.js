@@ -2,67 +2,67 @@
 
 const YEAR_TRANSITION_RULES = {
     2026: {
-        description: "Fase de teste com alíquotas padrão de CBS e IBS totalmente compensadas pelo PIS/Cofins. Sem impacto fiscal real na carga.",
+        description: "Fase de teste com alíquotas de teste (CBS 0,9% e IBS 0,1%) totalmente compensadas por PIS/Cofins. Sem impacto fiscal real na carga.",
         pisCofins: "Vigente (100%)",
         pisCofinsClass: "badge-primary",
         ipi: "Vigente (100%)",
         ipiClass: "badge-primary",
         icmsIss: "Vigente (100%)",
         icmsIssClass: "badge-primary",
-        cbs: "Teste (Compensado)",
+        cbs: "Teste (0.9% Compensado)",
         cbsClass: "badge-success",
-        ibs: "Teste (Compensado)",
+        ibs: "Teste (0.1% Compensado)",
         ibsClass: "badge-success",
         legalNote: "Conforme a EC 132/23, 2026 serve como fase experimental sem aumento da carga para homologar sistemas.",
-        cbsRateFunc: (cbsStd) => cbsStd,
-        ibsRateFunc: (ibsStd) => ibsStd,
+        cbsRateFunc: (cbsStd) => 0.009,
+        ibsRateFunc: (ibsStd) => 0.001,
         residualIcmsIssPct: 1.0,
         residualPisCofinsPct: 1.0,
         residualIpiPct: 1.0,
         neutralized: true
     },
     2027: {
-        description: "Extinção do PIS/Cofins e redução do IPI a zero em regra. Início da cobrança efetiva da CBS e do IBS no novo regime federal.",
+        description: "Extinção do PIS/Cofins e redução do IPI a zero em regra. Início da cobrança efetiva da CBS (com redução de 0,1%) e do IBS (com alíquota de 0,1%). ICMS e ISS permanecem normais.",
         pisCofins: "Extinto",
         pisCofinsClass: "badge-danger",
         ipi: "Alíquota Zero (Em Regra)",
         ipiClass: "badge-success",
         icmsIss: "Vigente (100%)",
         icmsIssClass: "badge-primary",
-        cbs: "Vigente (Alíquota Cheia)",
+        cbs: "Cobrança Efetiva (-0.1% p.p.)",
         cbsClass: "badge-success",
-        ibs: "Vigente (Alíquota Cheia)",
+        ibs: "Cobrança Efetiva (0.1%)",
         ibsClass: "badge-success",
-        legalNote: "Entrada em vigor da CBS federal e extinção do PIS/Cofins. IPI passa a ter alíquota zero para a maioria das mercadorias.",
-        cbsRateFunc: (cbsStd) => cbsStd,
-        ibsRateFunc: (ibsStd) => ibsStd,
+        legalNote: "Entrada em vigor da CBS federal com redução de 0,1% e IBS com alíquota de 0,1%. IPI passa a ter alíquota zero para a maioria das mercadorias, exceto ZFM. ICMS/ISS continuam a 100%.",
+        cbsRateFunc: (cbsStd) => Math.max(0, cbsStd - 0.001),
+        ibsRateFunc: (ibsStd) => 0.001,
         residualIcmsIssPct: 1.0,
         residualPisCofinsPct: 0.0,
         residualIpiPct: 0.0,
         neutralized: false
     },
     2028: {
-        description: "Continuidade do arranjo federal com PIS/Cofins extintos, IPI a alíquota zero, CBS ativa e IBS vigente nas alíquotas padrão.",
+        description: "Continuidade do arranjo federal com PIS/Cofins extintos, IPI a alíquota zero, CBS ativa a 8,7% (redução de 0,1%) e IBS a 0,1%.",
         pisCofins: "Extinto",
         pisCofinsClass: "badge-danger",
         ipi: "Alíquota Zero (Em Regra)",
         ipiClass: "badge-success",
         icmsIss: "Vigente (100%)",
         icmsIssClass: "badge-primary",
-        cbs: "Vigente (Alíquota Cheia)",
+        cbs: "Cobrança Efetiva (-0.1% p.p.)",
         cbsClass: "badge-success",
-        ibs: "Vigente (Alíquota Cheia)",
+        ibs: "Cobrança Efetiva (0.1%)",
         ibsClass: "badge-success",
         legalNote: "Ano de consolidação do novo arranjo federal de tributação antes do início da transição de ICMS e ISS.",
-        cbsRateFunc: (cbsStd) => cbsStd,
-        ibsRateFunc: (ibsStd) => ibsStd,
+        cbsRateFunc: (cbsStd) => Math.max(0, cbsStd - 0.001),
+        ibsRateFunc: (ibsStd) => 0.001,
         residualIcmsIssPct: 1.0,
         residualPisCofinsPct: 0.0,
         residualIpiPct: 0.0,
         neutralized: false
     },
     2029: {
-        description: "Início da transição subnacional gradual. ICMS e ISS reduzem para 90% de sua carga original, convivendo com a cobrança de CBS e IBS.",
+        description: "Início da transição subnacional gradual. ICMS e ISS reduzem para 90% de sua carga original, convivendo com a cobrança de 10% do IBS pleno.",
         pisCofins: "Extinto",
         pisCofinsClass: "badge-danger",
         ipi: "Alíquota Zero (Em Regra)",
@@ -71,18 +71,18 @@ const YEAR_TRANSITION_RULES = {
         icmsIssClass: "badge-warning",
         cbs: "Vigente (Alíquota Cheia)",
         cbsClass: "badge-success",
-        ibs: "Vigente (Alíquota Cheia)",
+        ibs: "Vigente (10% do IBS)",
         ibsClass: "badge-success",
-        legalNote: "Início da substituição gradual do ICMS e ISS estaduais/municipais pelo novo IBS compartilhado.",
+        legalNote: "Início da substituição gradual do ICMS e ISS estaduais/municipais pelo novo IBS (10% da alíquota plena e 90% de ICMS/ISS residual).",
         cbsRateFunc: (cbsStd) => cbsStd,
-        ibsRateFunc: (ibsStd) => ibsStd,
+        ibsRateFunc: (ibsStd) => ibsStd * 0.10,
         residualIcmsIssPct: 0.90,
         residualPisCofinsPct: 0.0,
         residualIpiPct: 0.0,
         neutralized: false
     },
     2030: {
-        description: "Avanço da transição subnacional. ICMS e ISS são reduzidos para 80%, convivendo com a cobrança integral de CBS e IBS.",
+        description: "Avanço da transição subnacional. ICMS e ISS são reduzidos para 80%, convivendo com a cobrança de 20% do IBS pleno.",
         pisCofins: "Extinto",
         pisCofinsClass: "badge-danger",
         ipi: "Alíquota Zero (Em Regra)",
@@ -91,18 +91,18 @@ const YEAR_TRANSITION_RULES = {
         icmsIssClass: "badge-warning",
         cbs: "Vigente (Alíquota Cheia)",
         cbsClass: "badge-success",
-        ibs: "Vigente (Alíquota Cheia)",
+        ibs: "Vigente (20% do IBS)",
         ibsClass: "badge-success",
-        legalNote: "Proporção progressiva: a participação do IBS no bloco subnacional aumenta em 10 pontos percentuais.",
+        legalNote: "Proporção progressiva: a participação do IBS no bloco subnacional aumenta para 20%, enquanto a carga de ICMS/ISS residual cai para 80%.",
         cbsRateFunc: (cbsStd) => cbsStd,
-        ibsRateFunc: (ibsStd) => ibsStd,
+        ibsRateFunc: (ibsStd) => ibsStd * 0.20,
         residualIcmsIssPct: 0.80,
         residualPisCofinsPct: 0.0,
         residualIpiPct: 0.0,
         neutralized: false
     },
     2031: {
-        description: "Intensificação da transição. ICMS e ISS reduzem para 70% de sua carga original, convivendo com a cobrança integral de CBS e IBS.",
+        description: "Intensificação da transição. ICMS e ISS reduzem para 70% de sua carga original, convivendo com a cobrança de 30% do IBS pleno.",
         pisCofins: "Extinto",
         pisCofinsClass: "badge-danger",
         ipi: "Alíquota Zero (Em Regra)",
@@ -111,18 +111,18 @@ const YEAR_TRANSITION_RULES = {
         icmsIssClass: "badge-warning",
         cbs: "Vigente (Alíquota Cheia)",
         cbsClass: "badge-success",
-        ibs: "Vigente (Alíquota Cheia)",
+        ibs: "Vigente (30% do IBS)",
         ibsClass: "badge-success",
-        legalNote: "A convivência entre os dois sistemas continua, mas a cobrança do IBS ganha maior representatividade.",
+        legalNote: "A convivência entre os dois sistemas continua, mas a cobrança do IBS ganha maior representatividade (30% IBS / 70% ICMS/ISS).",
         cbsRateFunc: (cbsStd) => cbsStd,
-        ibsRateFunc: (ibsStd) => ibsStd,
+        ibsRateFunc: (ibsStd) => ibsStd * 0.30,
         residualIcmsIssPct: 0.70,
         residualPisCofinsPct: 0.0,
         residualIpiPct: 0.0,
         neutralized: false
     },
     2032: {
-        description: "Último ano da transição escalonada subnacional expressa no Gov.br. ICMS e ISS reduzem para 60%, com CBS e IBS em alíquota padrão.",
+        description: "Último ano da transição escalonada subnacional expressa no Gov.br. ICMS e ISS reduzem para 60%, convivendo com a cobrança de 40% do IBS pleno.",
         pisCofins: "Extinto",
         pisCofinsClass: "badge-danger",
         ipi: "Alíquota Zero (Em Regra)",
@@ -131,18 +131,18 @@ const YEAR_TRANSITION_RULES = {
         icmsIssClass: "badge-warning",
         cbs: "Vigente (Alíquota Cheia)",
         cbsClass: "badge-success",
-        ibs: "Vigente (Alíquota Cheia)",
+        ibs: "Vigente (40% do IBS)",
         ibsClass: "badge-success",
-        legalNote: "Fase final da transição gradual expressa em percentuais. A partir do próximo ano, ocorre a migração definitiva.",
+        legalNote: "Fase final da transição gradual expressa em percentuais. A partir do próximo ano, ocorre a migração definitiva com substituição integral.",
         cbsRateFunc: (cbsStd) => cbsStd,
-        ibsRateFunc: (ibsStd) => ibsStd,
+        ibsRateFunc: (ibsStd) => ibsStd * 0.40,
         residualIcmsIssPct: 0.60,
         residualPisCofinsPct: 0.0,
         residualIpiPct: 0.0,
         neutralized: false
     },
     2033: {
-        description: "Conclusão definitiva da transição tributária principal. Extinção total de ICMS e ISS. IBS e CBS operam de forma integral e plena.",
+        description: "Conclusão definitiva da transição tributária principal. Extinção total de ICMS e ISS. IBS e CBS operam de forma integral e plena (100%).",
         pisCofins: "Extinto",
         pisCofinsClass: "badge-danger",
         ipi: "Alíquota Zero (Em Regra)",
@@ -155,7 +155,7 @@ const YEAR_TRANSITION_RULES = {
         ibsClass: "badge-success",
         legalNote: "Conforme a EC 132/2023, o IBS assume integralmente o papel do ICMS e ISS, finalizando a transição estrutural.",
         cbsRateFunc: (cbsStd) => cbsStd,
-        ibsRateFunc: (ibsStd) => ibsStd,
+        ibsRateFunc: (ibsStd) => ibsStd * 1.00,
         residualIcmsIssPct: 0.0,
         residualPisCofinsPct: 0.0,
         residualIpiPct: 0.0,
@@ -791,7 +791,8 @@ function recalculateAndRefresh() {
         // Calculate residual taxes for this year
         const tax_pis_res = (sale.pis_atual || 0) * yearRules.residualPisCofinsPct;
         const tax_cofins_res = (sale.cofins_atual || 0) * yearRules.residualPisCofinsPct;
-        const tax_ipi_res = (sale.ipi_atual || 0) * yearRules.residualIpiPct;
+        const isZFM = sale.uf_origem === 'AM' || sale.uf_destino === 'AM';
+        const tax_ipi_res = (sale.ipi_atual || 0) * (isZFM ? 1.0 : yearRules.residualIpiPct);
         const tax_icms_res = (sale.icms_atual || 0) * yearRules.residualIcmsIssPct;
         const tax_iss_res = (sale.iss_atual || 0) * yearRules.residualIcmsIssPct;
 
@@ -1206,7 +1207,20 @@ function updateSingleSimulator() {
 
     // Calculate residual taxes for this year
     const pisCofinsRes = (pisVal + cofinsVal) * yearRules.residualPisCofinsPct;
-    const ipiRes = ipiVal * yearRules.residualIpiPct;
+    
+    // Check if the simulated item has ZFM origin/destination or if its NCM belongs to a matching row that is ZFM
+    let isZFM = false;
+    if (analyzedSales && analyzedSales.length > 0) {
+        const cleanNcm = String(ncm || "").replace(/\D/g, "");
+        const match = analyzedSales.find(s => 
+            (cleanNcm && s.ncm_codigo === cleanNcm) || 
+            (name && String(s.produto_nome).toLowerCase().trim() === String(name).toLowerCase().trim())
+        );
+        if (match) {
+            isZFM = match.uf_origem === 'AM' || match.uf_destino === 'AM';
+        }
+    }
+    const ipiRes = ipiVal * (isZFM ? 1.0 : yearRules.residualIpiPct);
     const icmsIssRes = (icmsVal + issVal) * yearRules.residualIcmsIssPct;
 
     // Final tax burden for the year
@@ -1268,13 +1282,36 @@ function updateSingleSimulator() {
                     <strong style="color: var(--text-primary);">+ ${formatCurrency(currentTax)}</strong>
                 </div>
             `;
-        } else if (currentYear !== 2033) {
-            stepsHTML += `
-                <div style="display: flex; justify-content: space-between;">
-                    <span>5. (+) ICMS/ISS Residuais (${(yearRules.residualIcmsIssPct * 100).toFixed(0)}%):</span>
-                    <strong style="color: var(--text-primary);">+ ${formatCurrency(icmsIssRes)}</strong>
-                </div>
-            `;
+        } else {
+            let stepNum = 5;
+            if (pisCofinsRes > 0) {
+                stepsHTML += `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${stepNum}. (+) PIS/COFINS Residuais (${(yearRules.residualPisCofinsPct * 100).toFixed(0)}%):</span>
+                        <strong style="color: var(--text-primary);">+ ${formatCurrency(pisCofinsRes)}</strong>
+                    </div>
+                `;
+                stepNum++;
+            }
+            if (ipiRes > 0) {
+                const isZFMText = isZFM ? " (Preservado ZFM)" : ` (${(yearRules.residualIpiPct * 100).toFixed(0)}%)`;
+                stepsHTML += `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${stepNum}. (+) IPI Residual${isZFMText}:</span>
+                        <strong style="color: var(--text-primary);">+ ${formatCurrency(ipiRes)}</strong>
+                    </div>
+                `;
+                stepNum++;
+            }
+            if (icmsIssRes > 0) {
+                stepsHTML += `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${stepNum}. (+) ICMS/ISS Residuais (${(yearRules.residualIcmsIssPct * 100).toFixed(0)}%):</span>
+                        <strong style="color: var(--text-primary);">+ ${formatCurrency(icmsIssRes)}</strong>
+                    </div>
+                `;
+                stepNum++;
+            }
         }
 
         stepsHTML += `
@@ -1324,15 +1361,38 @@ function updateSingleSimulator() {
         compIpiEl.className = 'badge ' + yearRules.ipiClass;
     }
     if (compIcmsIssEl) {
-        compIcmsIssEl.textContent = yearRules.icmsIss;
+        let text = yearRules.icmsIss;
+        if (currentYear >= 2029 && currentYear <= 2032) {
+            text = `Reduzido a ${(yearRules.residualIcmsIssPct * 100).toFixed(0)}% (Transição)`;
+        }
+        compIcmsIssEl.textContent = text;
         compIcmsIssEl.className = 'badge ' + yearRules.icmsIssClass;
     }
     if (compCbsEl) {
-        compCbsEl.textContent = yearRules.cbs;
+        let text = yearRules.cbs;
+        if (currentYear === 2026) {
+            text = "Teste (0.9% Compensado)";
+        } else if (currentYear === 2027 || currentYear === 2028) {
+            text = `Efetivo (${(cbsRate * 100).toFixed(1)}% Cobrado)`;
+        } else {
+            text = `Vigente (${(cbsRate * 100).toFixed(1)}% Cheio)`;
+        }
+        compCbsEl.textContent = text;
         compCbsEl.className = 'badge ' + yearRules.cbsClass;
     }
     if (compIbsEl) {
-        compIbsEl.textContent = yearRules.ibs;
+        let text = yearRules.ibs;
+        if (currentYear === 2026) {
+            text = "Teste (0.1% Compensado)";
+        } else if (currentYear === 2027 || currentYear === 2028) {
+            text = `Efetivo (0.1% Inicial)`;
+        } else if (currentYear >= 2029 && currentYear <= 2032) {
+            const factorPct = (currentYear - 2028) * 10;
+            text = `Vigente (${factorPct}% = ${(ibsRate * 100).toFixed(2)}%)`;
+        } else {
+            text = `Vigente (${(ibsRate * 100).toFixed(1)}% Cheio)`;
+        }
+        compIbsEl.textContent = text;
         compIbsEl.className = 'badge ' + yearRules.ibsClass;
     }
 
