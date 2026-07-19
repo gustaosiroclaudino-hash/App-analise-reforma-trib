@@ -396,35 +396,81 @@ function parseSalesCSV(csvText) {
         skipEmptyLines: true,
         complete: function(results) {
             if (results.data && results.data.length > 0) {
-                // Validate columns
-                const required = ['produto_nome', 'valor_total'];
                 const headers = Object.keys(results.data[0]);
-                const missing = required.filter(col => !headers.includes(col));
                 
-                if (missing.length > 0) {
-                    alert(`O arquivo CSV é inválido. Colunas obrigatórias ausentes: ${missing.join(', ')}`);
-                    setDatabaseStatus('danger', 'Colunas inválidas no CSV.');
+                // Helper to search keys using aliases, filtering empty values
+                const getVal = (row, aliases, defaultVal = null) => {
+                    const foundKey = headers.find(k => {
+                        const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                        return aliases.some(alias => {
+                            const cleanAlias = alias.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                            return cleanK === cleanAlias;
+                        });
+                    });
+                    if (foundKey === undefined) return defaultVal;
+                    const val = row[foundKey];
+                    return (val === null || val === undefined || String(val).trim() === "") ? defaultVal : val;
+                };
+
+                // Validate minimum requirements: we need some way to identify the product description and value
+                const productAliases = ['produto_nome', 'descricao_produto', 'produto', 'descricao', 'nome_produto', 'item'];
+                const valueAliases = ['valor_total', 'valor_total_item', 'total', 'valor', 'valor_total_nfe'];
+
+                const hasProduct = headers.some(k => {
+                    const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                    return productAliases.some(alias => cleanK === alias.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+                });
+                
+                const hasValue = headers.some(k => {
+                    const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                    return valueAliases.some(alias => cleanK === alias.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+                });
+
+                if (!hasProduct || !hasValue) {
+                    alert('O arquivo CSV é inválido. Não foi possível identificar as colunas de nome/descrição do produto ou valor total.');
+                    setDatabaseStatus('danger', 'Colunas essenciais ausentes.');
                     return;
                 }
-                
-                // Format records properly
+
+                // Format records properly using alias mapping and safe float conversion
                 rawSales = results.data.map((row, idx) => {
+                    // Map client type dynamically from doc type or length
+                    let clientType = "B2C";
+                    const directType = getVal(row, ['tipo_cliente', 'tipo_cli', 'cliente_tipo']);
+                    if (directType) {
+                        clientType = String(directType).toUpperCase().includes("B2B") ? "B2B" : "B2C";
+                    } else {
+                        const docType = getVal(row, ['tipo_documento_cliente', 'tipo_doc', 'tipo_documento']);
+                        if (docType) {
+                            clientType = String(docType).toUpperCase() === "CNPJ" ? "B2B" : "B2C";
+                        } else {
+                            const docVal = getVal(row, ['documento_cliente', 'documento', 'doc_cliente', 'cnpj', 'cpf']);
+                            if (docVal) {
+                                const cleanDoc = String(docVal).replace(/\D/g, "");
+                                clientType = cleanDoc.length > 11 ? "B2B" : "B2C";
+                            }
+                        }
+                    }
+
+                    const ncmRaw = getVal(row, ['ncm_codigo', 'ncm', 'codigo_ncm'], "");
+                    const cleanNcm = String(ncmRaw || "").replace(/\D/g, "");
+
                     return {
-                        id_nfe: row.id_nfe || (idx + 1),
-                        data_emissao: row.data_emissao || "2026-07-19",
-                        uf_origem: row.uf_origem || "SP",
-                        uf_destino: row.uf_destino || "SP",
-                        ncm_codigo: String(row.ncm_codigo || "").replace(/\D/g, "") || "85171300",
-                        produto_nome: row.produto_nome,
-                        quantidade: row.quantidade || 1,
-                        valor_unitario: row.valor_unitario || row.valor_total,
-                        valor_total: row.valor_total,
-                        tipo_cliente: row.tipo_cliente || "B2C",
-                        pis_atual: row.pis_atual || 0,
-                        cofins_atual: row.cofins_atual || 0,
-                        icms_atual: row.icms_atual || 0,
-                        iss_atual: row.iss_atual || 0,
-                        ipi_atual: row.ipi_atual || 0
+                        id_nfe: getVal(row, ['id_nfe', 'id_venda', 'id', 'numero_nfe', 'nfe', 'numero'], idx + 1),
+                        data_emissao: getVal(row, ['data_emissao', 'data', 'emissao', 'data_venda'], "2026-07-19"),
+                        uf_origem: getVal(row, ['uf_origem', 'origem', 'uf_de', 'uf_orig'], "SP"),
+                        uf_destino: getVal(row, ['uf_destino', 'uf_cliente', 'uf_dest', 'uf_para', 'uf'], "SP"),
+                        ncm_codigo: cleanNcm || "85171300",
+                        produto_nome: getVal(row, productAliases, "Produto Sem Nome"),
+                        quantidade: parseFloatSafe(getVal(row, ['quantidade', 'qtd', 'quant'], 1), 1),
+                        valor_unitario: parseFloatSafe(getVal(row, ['valor_unitario', 'preco_unitario', 'valor_unit', 'preco'], 0), 0),
+                        valor_total: parseFloatSafe(getVal(row, valueAliases, 0), 0),
+                        tipo_cliente: clientType,
+                        pis_atual: parseFloatSafe(getVal(row, ['pis_atual', 'valor_pis', 'pis', 'vlr_pis', 'vl_pis', 'pis_valor', 'pisval', 'valorpis', 'pis_vlr', 'pis_val'], 0), 0),
+                        cofins_atual: parseFloatSafe(getVal(row, ['cofins_atual', 'valor_cofins', 'cofins', 'vlr_cofins', 'vl_cofins', 'cofins_valor', 'cofinsval', 'valorcofins', 'cofins_vlr', 'cofins_val'], 0), 0),
+                        icms_atual: parseFloatSafe(getVal(row, ['icms_atual', 'valor_icms', 'icms', 'vlr_icms', 'vl_icms', 'icms_valor', 'icmsval', 'valoricms', 'icms_vlr', 'icms_val'], 0), 0),
+                        iss_atual: parseFloatSafe(getVal(row, ['iss_atual', 'valor_iss', 'iss', 'vlr_iss', 'vl_iss', 'iss_valor', 'issval', 'valoriss', 'iss_vlr', 'iss_val'], 0), 0),
+                        ipi_atual: parseFloatSafe(getVal(row, ['ipi_atual', 'valor_ipi', 'ipi', 'vlr_ipi', 'vl_ipi', 'ipi_valor', 'ipival', 'valoripi', 'ipi_vlr', 'ipi_val'], 0), 0)
                     };
                 });
                 
@@ -854,6 +900,18 @@ function updateSingleSimulator() {
     // We try to pull from matching items in active CSV, or fallback to 24% standard current rate
     let currentRate = 0.2425; 
     
+    // Attempt to pull actual rate from active CSV matching by NCM or name
+    if (analyzedSales && analyzedSales.length > 0) {
+        const cleanNcm = String(ncm || "").replace(/\D/g, "");
+        const match = analyzedSales.find(s => 
+            (cleanNcm && s.ncm_codigo === cleanNcm) || 
+            (name && String(s.produto_nome).toLowerCase().trim() === String(name).toLowerCase().trim())
+        );
+        if (match && match.valor_total > 0) {
+            currentRate = match.tax_current / match.valor_total;
+        }
+    }
+    
     // Check if the simulator inputs match a rule
     let cbsFactor = 1.0;
     let ibsFactor = 1.0;
@@ -907,6 +965,37 @@ function updateRulesDisplay() {
 // Helpers
 function formatCurrency(val) {
     return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Safe float parsing with localization support (Brazilian & US formatting)
+function parseFloatSafe(val, defaultVal) {
+    if (val === null || val === undefined) return defaultVal;
+    if (typeof val === 'number') return val;
+    
+    var str = String(val).trim();
+    if (str === "") return defaultVal;
+    
+    // Remove currency indicators and spaces
+    str = str.replace(/R\$\s*/gi, '').replace(/\s/g, '');
+    
+    var lastComma = str.lastIndexOf(',');
+    var lastDot = str.lastIndexOf('.');
+    
+    if (lastComma !== -1 && lastDot !== -1) {
+        if (lastComma > lastDot) {
+            // Brazilian format: 1.234,56 -> 1234.56
+            str = str.replace(/\./g, '').replace(',', '.');
+        } else {
+            // US format: 1,234.56 -> 1234.56
+            str = str.replace(/,/g, '');
+        }
+    } else if (lastComma !== -1) {
+        // Only comma decimal separator: 1234,56 -> 1234.56
+        str = str.replace(',', '.');
+    }
+    
+    var parsed = parseFloat(str);
+    return isNaN(parsed) ? defaultVal : parsed;
 }
 
 // Dynamic row simulator trigger
