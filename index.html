@@ -156,6 +156,40 @@
                                 <span id="sim-tax-new">R$ 0,00</span>
                             </div>
                         </div>
+                        
+                        <!-- Memória de Cálculo (Passo a Passo) -->
+                        <div class="calculation-steps" id="sim-calc-steps" style="margin-top: 16px; padding: 16px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 8px; font-size: 13px;">
+                            <div style="font-weight: 600; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="calculator" style="width: 14px; height: 14px;"></i>
+                                Memória de Cálculo (Passo a Passo)
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary);">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>1. Valor Total do Item:</span>
+                                    <strong id="step-total-val" style="color: var(--text-primary);">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>2. (-) Carga Atual Extinta:</span>
+                                    <strong id="step-tax-current" style="color: var(--warning);">- R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 6px; color: var(--text-primary);">
+                                    <span>(=) Base de Cálculo Líquida:</span>
+                                    <strong id="step-net-val">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>3. (+) CBS Projetada (<span id="step-cbs-rate">0%</span>):</span>
+                                    <strong id="step-cbs-val" style="color: var(--text-primary);">+ R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>4. (+) IBS Projetado (<span id="step-ibs-rate">0%</span>):</span>
+                                    <strong id="step-ibs-val" style="color: var(--text-primary);">+ R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 6px; color: var(--text-primary); font-weight: 600;">
+                                    <span>(=) Nova Carga (3 + 4):</span>
+                                    <strong id="step-new-tax" style="color: var(--text-primary);">R$ 0,00</strong>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>

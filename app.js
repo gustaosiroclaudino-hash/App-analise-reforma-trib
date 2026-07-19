@@ -595,8 +595,9 @@ function recalculateAndRefresh() {
         const cbsRate = cbsStd * cbsFactor;
         const ibsRate = ibsStd * ibsFactor;
 
-        const cbsValCalculated = sale.valor_total * cbsRate;
-        const ibsValCalculated = sale.valor_total * ibsRate;
+        const baseValue = Math.max(0, sale.valor_total - taxCurrent);
+        const cbsValCalculated = baseValue * cbsRate;
+        const ibsValCalculated = baseValue * ibsRate;
         const taxNewNominal = cbsValCalculated + ibsValCalculated;
 
         // Apply transition scenario
@@ -972,18 +973,38 @@ function updateSingleSimulator() {
     }
 
     const currentTax = totalVal * currentRate;
-    const simCbs = totalVal * cbsStd * cbsFactor;
-    const simIbs = totalVal * ibsStd * ibsFactor;
+    const valorLiquido = Math.max(0, totalVal - currentTax);
+    const simCbs = valorLiquido * cbsStd * cbsFactor;
+    const simIbs = valorLiquido * ibsStd * ibsFactor;
     const newTax = simCbs + simIbs;
 
     const diff = newTax - currentTax;
     const diffPct = currentTax > 0 ? (diff / currentTax) * 100 : 0;
 
     // Update Simulator Card
-    simTaxCurrentEl.textContent = formatCurrency(currentTax);
-    simTaxCbsEl.textContent = formatCurrency(simCbs);
-    simTaxIbsEl.textContent = formatCurrency(simIbs);
-    simTaxNewEl.textContent = formatCurrency(newTax);
+    if (simTaxCurrentEl) simTaxCurrentEl.textContent = formatCurrency(currentTax);
+    if (simTaxCbsEl) simTaxCbsEl.textContent = formatCurrency(simCbs);
+    if (simTaxIbsEl) simTaxIbsEl.textContent = formatCurrency(simIbs);
+    if (simTaxNewEl) simTaxNewEl.textContent = formatCurrency(newTax);
+
+    // Update step-by-step panel elements
+    const stepTotalValEl = document.getElementById('step-total-val');
+    const stepTaxCurrentEl = document.getElementById('step-tax-current');
+    const stepNetValEl = document.getElementById('step-net-val');
+    const stepCbsRateEl = document.getElementById('step-cbs-rate');
+    const stepCbsValEl = document.getElementById('step-cbs-val');
+    const stepIbsRateEl = document.getElementById('step-ibs-rate');
+    const stepIbsValEl = document.getElementById('step-ibs-val');
+    const stepNewTaxEl = document.getElementById('step-new-tax');
+
+    if (stepTotalValEl) stepTotalValEl.textContent = formatCurrency(totalVal);
+    if (stepTaxCurrentEl) stepTaxCurrentEl.textContent = '- ' + formatCurrency(currentTax);
+    if (stepNetValEl) stepNetValEl.textContent = formatCurrency(valorLiquido);
+    if (stepCbsRateEl) stepCbsRateEl.textContent = (cbsStd * cbsFactor * 100).toFixed(1) + '%';
+    if (stepCbsValEl) stepCbsValEl.textContent = '+ ' + formatCurrency(simCbs);
+    if (stepIbsRateEl) stepIbsRateEl.textContent = (ibsStd * ibsFactor * 100).toFixed(1) + '%';
+    if (stepIbsValEl) stepIbsValEl.textContent = '+ ' + formatCurrency(simIbs);
+    if (stepNewTaxEl) stepNewTaxEl.textContent = formatCurrency(newTax);
 
     simImpactVal.textContent = (diff >= 0 ? '+' : '') + formatCurrency(diff);
     
