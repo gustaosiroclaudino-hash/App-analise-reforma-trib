@@ -412,10 +412,21 @@ function initEventListeners() {
         }
     });
 
-    // Load local example database
+    // Clear and reset database cache
     btnLoadDefault.addEventListener('click', () => {
-        loadFallbackSales();
+        if (confirm('Deseja limpar todos os dados importados e esvaziar o simulador?')) {
+            clearSalesCache();
+            loadFallbackSales();
+        }
     });
+
+    // Export data to Excel
+    const btnExportExcel = document.getElementById('btn-export-excel');
+    if (btnExportExcel) {
+        btnExportExcel.addEventListener('click', () => {
+            exportSalesToExcel();
+        });
+    }
 
     // Search bar
     tableSearch.addEventListener('input', () => {
@@ -557,7 +568,23 @@ function updateMappingsDisplay() {
 }
 
 function loadInitialSales() {
-    // Attempt loading vendas_exemplo.csv
+    // 1. Try loading from localStorage cache
+    try {
+        const cached = localStorage.getItem('rawSales');
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed && parsed.length > 0) {
+                rawSales = parsed;
+                setDatabaseStatus('success', 'Base de dados restaurada do cache local.');
+                recalculateAndRefresh();
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('Erro ao ler rawSales do cache local:', e);
+    }
+
+    // 2. Fallback to loading vendas_exemplo.csv
     fetch('tabelas_nfe/vendas_exemplo.csv')
         .then(response => {
             if (!response.ok) throw new Error('Não foi possível carregar o CSV');
@@ -583,22 +610,54 @@ function loadFallbackSales() {
 }
 
 function handleFileUpload(file) {
-    if (!file.name.endsWith('.csv')) {
-        alert('Por favor, faça upload de um arquivo com extensão .csv');
-        return;
+    const fileName = file.name.toLowerCase();
+    if (fileName.endsWith('.csv')) {
+        setDatabaseStatus('warning', 'Processando arquivo CSV...');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            parseSalesCSV(e.target.result);
+        };
+        reader.onerror = function() {
+            alert('Erro ao ler o arquivo selecionado.');
+            setDatabaseStatus('danger', 'Erro na leitura do arquivo enviado.');
+        };
+        reader.readAsText(file, 'UTF-8');
+    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+        setDatabaseStatus('warning', 'Processando planilha Excel...');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Get the first worksheet
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                
+                // Convert worksheet to JSON (array of objects)
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                
+                if (jsonData && jsonData.length > 0) {
+                    processSalesJSON(jsonData, false);
+                    setDatabaseStatus('success', `Carregado arquivo Excel: ${file.name}`);
+                } else {
+                    alert('Nenhum dado localizado na primeira aba da planilha.');
+                    setDatabaseStatus('warning', 'Planilha Excel vazia.');
+                }
+            } catch (err) {
+                console.error('Erro ao ler planilha Excel:', err);
+                alert('Falha ao processar a planilha Excel selecionada.');
+                setDatabaseStatus('danger', 'Erro na leitura do Excel.');
+            }
+        };
+        reader.onerror = function() {
+            alert('Erro ao ler o arquivo selecionado.');
+            setDatabaseStatus('danger', 'Erro na leitura do arquivo enviado.');
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        alert('Por favor, faça upload de um arquivo com extensão .csv, .xlsx ou .xls');
     }
-    setDatabaseStatus('warning', 'Processando arquivo upload...');
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        parseSalesCSV(e.target.result);
-        setDatabaseStatus('success', `Carregado arquivo do usuário: ${file.name}`);
-    };
-    reader.onerror = function() {
-        alert('Erro ao ler o arquivo selecionado.');
-        setDatabaseStatus('danger', 'Erro na leitura do arquivo enviado.');
-    };
-    reader.readAsText(file, 'UTF-8');
 }
 
 function parseSalesCSV(csvText, silent = false) {
@@ -608,100 +667,127 @@ function parseSalesCSV(csvText, silent = false) {
         skipEmptyLines: true,
         complete: function(results) {
             if (results.data && results.data.length > 0) {
-                const headers = Object.keys(results.data[0]);
-                const mappings = columnMappings || DEFAULT_MAPPINGS;
-                
-                // Helper to search keys using aliases from configurations, filtering empty values
-                const getVal = (row, keyOrAliases, defaultVal = null) => {
-                    const aliases = Array.isArray(keyOrAliases) 
-                        ? keyOrAliases 
-                        : (mappings[keyOrAliases] || [keyOrAliases]);
-                        
-                    const foundKey = headers.find(k => {
-                        const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
-                        return aliases.some(alias => {
-                            const cleanAlias = alias.toLowerCase().replace(/[^a-z0-9_]/g, '');
-                            return cleanK === cleanAlias;
-                        });
-                    });
-                    if (foundKey === undefined) return defaultVal;
-                    const val = row[foundKey];
-                    return (val === null || val === undefined || String(val).trim() === "") ? defaultVal : val;
-                };
-
-                // Validate minimum requirements: we need some way to identify the product description and value
-                const productAliases = mappings.produto_nome;
-                const valueAliases = mappings.valor_total;
-
-                const hasProduct = headers.some(k => {
-                    const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
-                    return productAliases.some(alias => cleanK === alias.toLowerCase().replace(/[^a-z0-9_]/g, ''));
-                });
-                
-                const hasValue = headers.some(k => {
-                    const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
-                    return valueAliases.some(alias => cleanK === alias.toLowerCase().replace(/[^a-z0-9_]/g, ''));
-                });
-
-                if (!hasProduct || !hasValue) {
-                    alert('O arquivo CSV é inválido. Não foi possível identificar as colunas de nome/descrição do produto ou valor total.');
-                    setDatabaseStatus('danger', 'Colunas essenciais ausentes.');
-                    return;
+                processSalesJSON(results.data, silent);
+                if (!silent) {
+                    setDatabaseStatus('success', 'Arquivo CSV carregado com sucesso.');
                 }
-
-                // Format records properly using alias mapping and safe float conversion
-                rawSales = results.data.map((row, idx) => {
-                    // Map client type dynamically from doc type or length
-                    let clientType = "B2C";
-                    const directType = getVal(row, 'tipo_cliente');
-                    if (directType) {
-                        clientType = String(directType).toUpperCase().includes("B2B") ? "B2B" : "B2C";
-                    } else {
-                        const docType = getVal(row, ['tipo_documento_cliente', 'tipo_doc', 'tipo_documento']);
-                        if (docType) {
-                            clientType = String(docType).toUpperCase() === "CNPJ" ? "B2B" : "B2C";
-                        } else {
-                            const docVal = getVal(row, ['documento_cliente', 'documento', 'doc_cliente', 'cnpj', 'cpf']);
-                            if (docVal) {
-                                const cleanDoc = String(docVal).replace(/\D/g, "");
-                                clientType = cleanDoc.length > 11 ? "B2B" : "B2C";
-                            }
-                        }
-                    }
-
-                    const ncmRaw = getVal(row, 'ncm_codigo', "");
-                    const cleanNcm = String(ncmRaw || "").replace(/\D/g, "");
-
-                    return {
-                        id_nfe: getVal(row, 'id_nfe', idx + 1),
-                        data_emissao: getVal(row, 'data_emissao', "2026-07-19"),
-                        uf_origem: getVal(row, 'uf_origem', "SP"),
-                        uf_destino: getVal(row, 'uf_destino', "SP"),
-                        ncm_codigo: cleanNcm || "85171300",
-                        produto_nome: getVal(row, 'produto_nome', "Produto Sem Nome"),
-                        quantidade: parseFloatSafe(getVal(row, 'quantidade', 1), 1),
-                        valor_unitario: parseFloatSafe(getVal(row, 'valor_unitario', 0), 0),
-                        valor_total: parseFloatSafe(getVal(row, 'valor_total', 0), 0),
-                        tipo_cliente: clientType,
-                        pis_atual: parseFloatSafe(getVal(row, 'pis_atual', 0), 0),
-                        cofins_atual: parseFloatSafe(getVal(row, 'cofins_atual', 0), 0),
-                        icms_atual: parseFloatSafe(getVal(row, 'icms_atual', 0), 0),
-                        iss_atual: parseFloatSafe(getVal(row, 'iss_atual', 0), 0),
-                        ipi_atual: parseFloatSafe(getVal(row, 'ipi_atual', 0), 0)
-                    };
-                });
-                
-                recalculateAndRefresh();
             } else {
                 if (!silent) {
                     alert('Nenhum dado encontrado no arquivo CSV.');
                 }
                 setDatabaseStatus('warning', 'Aguardando importação de notas fiscais...');
                 rawSales = [];
+                saveSalesToCache();
                 recalculateAndRefresh();
             }
         }
     });
+}
+
+function processSalesJSON(jsonData, silent = false) {
+    const headers = Object.keys(jsonData[0]);
+    const mappings = columnMappings || DEFAULT_MAPPINGS;
+    
+    // Helper to search keys using aliases from configurations, filtering empty values
+    const getVal = (row, keyOrAliases, defaultVal = null) => {
+        const aliases = Array.isArray(keyOrAliases) 
+            ? keyOrAliases 
+            : (mappings[keyOrAliases] || [keyOrAliases]);
+            
+        const foundKey = headers.find(k => {
+            const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
+            return aliases.some(alias => {
+                const cleanAlias = alias.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                return cleanK === cleanAlias;
+            });
+        });
+        if (foundKey === undefined) return defaultVal;
+        const val = row[foundKey];
+        return (val === null || val === undefined || String(val).trim() === "") ? defaultVal : val;
+    };
+
+    // Validate minimum requirements: we need some way to identify the product description and value
+    const productAliases = mappings.produto_nome;
+    const valueAliases = mappings.valor_total;
+
+    const hasProduct = headers.some(k => {
+        const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
+        return productAliases.some(alias => cleanK === alias.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+    });
+    
+    const hasValue = headers.some(k => {
+        const cleanK = k.toLowerCase().replace(/[^a-z0-9_]/g, '');
+        return valueAliases.some(alias => cleanK === alias.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+    });
+
+    if (!hasProduct || !hasValue) {
+        if (!silent) {
+            alert('A planilha é inválida. Não foi possível identificar as colunas de descrição do produto ou valor total.');
+        }
+        setDatabaseStatus('danger', 'Colunas essenciais ausentes.');
+        return;
+    }
+
+    // Format records properly using alias mapping and safe float conversion
+    rawSales = jsonData.map((row, idx) => {
+        // Map client type dynamically from doc type or length
+        let clientType = "B2C";
+        const directType = getVal(row, 'tipo_cliente');
+        if (directType) {
+            clientType = String(directType).toUpperCase().includes("B2B") ? "B2B" : "B2C";
+        } else {
+            const docType = getVal(row, ['tipo_documento_cliente', 'tipo_doc', 'tipo_documento']);
+            if (docType) {
+                clientType = String(docType).toUpperCase() === "CNPJ" ? "B2B" : "B2C";
+            } else {
+                const docVal = getVal(row, ['documento_cliente', 'documento', 'doc_cliente', 'cnpj', 'cpf']);
+                if (docVal) {
+                    const cleanDoc = String(docVal).replace(/\D/g, "");
+                    clientType = cleanDoc.length > 11 ? "B2B" : "B2C";
+                }
+            }
+        }
+
+        const ncmRaw = getVal(row, 'ncm_codigo', "");
+        const cleanNcm = String(ncmRaw || "").replace(/\D/g, "");
+
+        return {
+            id_nfe: getVal(row, 'id_nfe', idx + 1),
+            data_emissao: getVal(row, 'data_emissao', "2026-07-19"),
+            uf_origem: getVal(row, 'uf_origem', "SP"),
+            uf_destino: getVal(row, 'uf_destino', "SP"),
+            ncm_codigo: cleanNcm || "85171300",
+            produto_nome: getVal(row, 'produto_nome', "Produto Sem Nome"),
+            quantidade: parseFloatSafe(getVal(row, 'quantidade', 1), 1),
+            valor_unitario: parseFloatSafe(getVal(row, 'valor_unitario', 0), 0),
+            valor_total: parseFloatSafe(getVal(row, 'valor_total', 0), 0),
+            tipo_cliente: clientType,
+            pis_atual: parseFloatSafe(getVal(row, 'pis_atual', 0), 0),
+            cofins_atual: parseFloatSafe(getVal(row, 'cofins_atual', 0), 0),
+            icms_atual: parseFloatSafe(getVal(row, 'icms_atual', 0), 0),
+            iss_atual: parseFloatSafe(getVal(row, 'iss_atual', 0), 0),
+            ipi_atual: parseFloatSafe(getVal(row, 'ipi_atual', 0), 0)
+        };
+    });
+
+    saveSalesToCache();
+    recalculateAndRefresh();
+}
+
+function saveSalesToCache() {
+    try {
+        localStorage.setItem('rawSales', JSON.stringify(rawSales));
+    } catch (e) {
+        console.warn('Erro ao salvar no cache local:', e);
+    }
+}
+
+function clearSalesCache() {
+    try {
+        localStorage.removeItem('rawSales');
+    } catch (e) {
+        console.warn('Erro ao limpar cache local:', e);
+    }
 }
 
 function setDatabaseStatus(type, message) {
@@ -1496,3 +1582,52 @@ function simulateRow(idNfe) {
     }
 }
 window.simulateRow = simulateRow;
+
+function exportSalesToExcel() {
+    if (!analyzedSales || analyzedSales.length === 0) {
+        alert('Nenhum dado disponível para exportação. Importe uma planilha primeiro.');
+        return;
+    }
+    
+    // Format headers and values for business presentation
+    const dataToExport = analyzedSales.map(sale => ({
+        'ID NFe': sale.id_nfe,
+        'Data Emissão': sale.data_emissao,
+        'UF Origem': sale.uf_origem,
+        'UF Destino': sale.uf_destino,
+        'NCM': sale.ncm_codigo,
+        'Produto': sale.produto_nome,
+        'Quantidade': sale.quantidade,
+        'Valor Unitário (R$)': sale.valor_unitario,
+        'Valor Total (R$)': sale.valor_total,
+        'Tipo de Cliente': sale.tipo_cliente,
+        'PIS Atual (R$)': sale.pis_atual || 0,
+        'COFINS Atual (R$)': sale.cofins_atual || 0,
+        'ICMS Atual (R$)': sale.icms_atual || 0,
+        'ISS Atual (R$)': sale.iss_atual || 0,
+        'IPI Atual (R$)': sale.ipi_atual || 0,
+        'Carga Atual Total (R$)': sale.tax_current || 0,
+        'CBS Projetada (R$)': sale.tax_cbs || 0,
+        'IBS Projetado (R$)': sale.tax_ibs || 0,
+        'PIS Residual (R$)': sale.tax_pis_res || 0,
+        'COFINS Residual (R$)': sale.tax_cofins_res || 0,
+        'ICMS Residual (R$)': sale.tax_icms_res || 0,
+        'ISS Residual (R$)': sale.tax_iss_res || 0,
+        'IPI Residual (R$)': sale.tax_ipi_res || 0,
+        'Carga Nova Total (R$)': sale.tax_new || 0,
+        'Impacto Líquido (R$)': sale.tax_diff || 0,
+        'Regra Aplicada': sale.status_regra
+    }));
+
+    try {
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Análise Tributária');
+        
+        // Save file
+        XLSX.writeFile(workbook, `analise_reforma_tributaria_${currentYear}.xlsx`);
+    } catch (e) {
+        console.error('Erro ao exportar arquivo Excel:', e);
+        alert('Ocorreu um erro ao gerar o arquivo Excel para download.');
+    }
+}

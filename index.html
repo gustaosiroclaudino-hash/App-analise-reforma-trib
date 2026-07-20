@@ -277,9 +277,9 @@
                         <div class="control-group">
                             <div id="upload-zone" class="upload-zone">
                                 <i data-lucide="upload-cloud"></i>
-                                <h4>Carregar CSV de Vendas</h4>
-                                <p>Arraste seu arquivo ou clique para escolher</p>
-                                <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+                                <h4>Carregar Planilha de Vendas</h4>
+                                <p>Arraste arquivo CSV/Excel ou clique para escolher</p>
+                                <input type="file" id="csv-file-input" accept=".csv, .xlsx, .xls" style="display: none;">
                             </div>
                             
                             <!-- DB Status -->
@@ -288,9 +288,9 @@
                                 <span id="status-text">Carregando base padrão...</span>
                             </div>
 
-                            <button id="btn-load-default" class="btn btn-secondary" style="width: 100%; margin-top: 12px; font-size: 13px;">
-                                <i data-lucide="rotate-ccw"></i>
-                                Carregar Exemplo Local
+                            <button id="btn-load-default" class="btn btn-secondary" style="width: 100%; margin-top: 12px; font-size: 13px; color: var(--danger); border-color: rgba(239, 68, 68, 0.2);">
+                                <i data-lucide="trash-2" style="width: 15px; height: 15px; margin-right: 6px; vertical-align: middle;"></i>
+                                Limpar Dados Carregados
                             </button>
                         </div>
 
@@ -402,8 +402,12 @@
                         <div class="card table-card">
                             <div class="table-header">
                                 <h3>Itens das Notas Fiscais</h3>
-                                <div class="table-controls">
+                                <div class="table-controls" style="display: flex; gap: 12px; align-items: center;">
                                     <input type="text" id="table-search" class="table-search" placeholder="Buscar produto ou NCM...">
+                                    <button id="btn-export-excel" class="btn btn-secondary" style="font-size: 13px; padding: 8px 16px; border-radius: var(--border-radius-sm); white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="Exportar dados para Excel">
+                                        <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+                                        Exportar Planilha
+                                    </button>
                                 </div>
                             </div>
                             <div class="table-wrapper">
@@ -518,6 +522,7 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.359.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Application Logic -->
     <script src="app.js"></script>
