@@ -1,9 +1,1 @@
 id_nfe,data_emissao,uf_origem,uf_destino,ncm_codigo,produto_nome,quantidade,valor_unitario,valor_total,tipo_cliente,pis_atual,cofins_atual,icms_atual,iss_atual,ipi_atual
-1,2026-07-01,SP,SP,85171300,Smartphone Android,2,1500.00,3000.00,B2C,49.50,228.00,540.00,0.00,0.00
-2,2026-07-01,SP,RJ,84713012,Notebook Pro,1,4500.00,4500.00,B2B,74.25,342.00,540.00,0.00,0.00
-3,2026-07-02,MG,SP,10063021,Arroz Integral 5kg,50,25.00,1250.00,B2B,0.00,0.00,0.00,0.00,0.00
-4,2026-07-02,MG,MG,07133399,Feijao Carioca 1kg,100,8.00,800.00,B2C,0.00,0.00,0.00,0.00,0.00
-5,2026-07-03,SP,SP,04012010,Leite Integral UHT,200,4.50,900.00,B2C,0.00,0.00,0.00,0.00,0.00
-6,2026-07-03,RJ,SP,30049025,Ibuprofeno 600mg,30,15.00,450.00,B2C,7.43,34.20,54.00,0.00,0.00
-7,2026-07-04,SP,SP,99010000,Mensalidade Escolar Ensino Medio,1,1200.00,1200.00,B2C,19.80,91.20,0.00,60.00,0.00
-8,2026-07-04,SP,MG,85171300,Smartphone Android,10,1400.00,14000.00,B2B,231.00,1064.00,1680.00,0.00,0.00

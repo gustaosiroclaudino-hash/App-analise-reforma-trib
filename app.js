@@ -230,28 +230,8 @@ const DEFAULT_MAPPINGS = {
     "ipi_atual": ["ipi_atual", "valor_ipi", "ipi", "vlr_ipi", "vl_ipi", "ipi_valor", "ipival", "valoripi", "ipi_vlr", "ipi_val", "ipi_aliquota"]
 };
 
-// Fallback Default Sales Database (contains vendas_exemplo.csv + expanded entries for premium dashboard presentation)
-const DEFAULT_VENDAS = [
-    { id_nfe: 1, data_emissao: "2026-07-01", uf_origem: "SP", uf_destino: "SP", ncm_codigo: "85171300", produto_nome: "Smartphone Android", quantidade: 2, valor_unitario: 1500.00, valor_total: 3000.00, tipo_cliente: "B2C", pis_atual: 49.50, cofins_atual: 228.00, icms_atual: 540.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 2, data_emissao: "2026-07-01", uf_origem: "SP", uf_destino: "RJ", ncm_codigo: "84713012", produto_nome: "Notebook Pro", quantidade: 1, valor_unitario: 4500.00, valor_total: 4500.00, tipo_cliente: "B2B", pis_atual: 74.25, cofins_atual: 342.00, icms_atual: 540.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 3, data_emissao: "2026-07-02", uf_origem: "MG", uf_destino: "SP", ncm_codigo: "10063021", produto_nome: "Arroz Integral 5kg", quantidade: 50, valor_unitario: 25.00, valor_total: 1250.00, tipo_cliente: "B2B", pis_atual: 0.00, cofins_atual: 0.00, icms_atual: 0.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 4, data_emissao: "2026-07-02", uf_origem: "MG", uf_destino: "MG", ncm_codigo: "07133399", produto_nome: "Feijao Carioca 1kg", quantidade: 100, valor_unitario: 8.00, valor_total: 800.00, tipo_cliente: "B2C", pis_atual: 0.00, cofins_atual: 0.00, icms_atual: 0.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 5, data_emissao: "2026-07-03", uf_origem: "SP", uf_destino: "SP", ncm_codigo: "04012010", produto_nome: "Leite Integral UHT", quantidade: 200, valor_unitario: 4.50, valor_total: 900.00, tipo_cliente: "B2C", pis_atual: 0.00, cofins_atual: 0.00, icms_atual: 0.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 6, data_emissao: "2026-07-03", uf_origem: "RJ", uf_destino: "SP", ncm_codigo: "30049025", produto_nome: "Ibuprofeno 600mg", quantidade: 30, valor_unitario: 15.00, valor_total: 450.00, tipo_cliente: "B2C", pis_atual: 7.43, cofins_atual: 34.20, icms_atual: 54.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 7, data_emissao: "2026-07-04", uf_origem: "SP", uf_destino: "SP", ncm_codigo: "99010000", produto_nome: "Mensalidade Escolar Ensino Medio", quantidade: 1, valor_unitario: 1200.00, valor_total: 1200.00, tipo_cliente: "B2C", pis_atual: 19.80, cofins_atual: 91.20, icms_atual: 0.00, iss_atual: 60.00, ipi_atual: 0.00 },
-    { id_nfe: 8, data_emissao: "2026-07-04", uf_origem: "SP", uf_destino: "MG", ncm_codigo: "85171300", produto_nome: "Smartphone Android", quantidade: 10, valor_unitario: 1400.00, valor_total: 14000.00, tipo_cliente: "B2B", pis_atual: 231.00, cofins_atual: 1064.00, icms_atual: 1680.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    
-    // Additional realistic records to make charts rich and responsive
-    { id_nfe: 9, data_emissao: "2026-07-05", uf_origem: "PR", uf_destino: "SP", ncm_codigo: "84713012", produto_nome: "Notebook Pro", quantidade: 3, valor_unitario: 4200.00, valor_total: 12600.00, tipo_cliente: "B2B", pis_atual: 207.90, cofins_atual: 957.60, icms_atual: 1512.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 10, data_emissao: "2026-07-05", uf_origem: "SP", uf_destino: "RS", ncm_codigo: "85171300", produto_nome: "Smartphone Android", quantidade: 5, valor_unitario: 1300.00, valor_total: 6500.00, tipo_cliente: "B2C", pis_atual: 107.25, cofins_atual: 494.00, icms_atual: 1170.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 11, data_emissao: "2026-07-06", uf_origem: "SP", uf_destino: "SP", ncm_codigo: "30049025", produto_nome: "Dipirona Monoidratada", quantidade: 100, valor_unitario: 5.00, valor_total: 500.00, tipo_cliente: "B2C", pis_atual: 8.25, cofins_atual: 38.00, icms_atual: 90.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 12, data_emissao: "2026-07-06", uf_origem: "MG", uf_destino: "RJ", ncm_codigo: "10063021", produto_nome: "Arroz Integral 5kg", quantidade: 80, valor_unitario: 26.00, valor_total: 2080.00, tipo_cliente: "B2B", pis_atual: 0.00, cofins_atual: 0.00, icms_atual: 0.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 13, data_emissao: "2026-07-07", uf_origem: "RS", uf_destino: "PR", ncm_codigo: "07133399", produto_nome: "Feijao Carioca 1kg", quantidade: 150, valor_unitario: 8.50, valor_total: 1275.00, tipo_cliente: "B2B", pis_atual: 0.00, cofins_atual: 0.00, icms_atual: 0.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 14, data_emissao: "2026-07-08", uf_origem: "SP", uf_destino: "BA", ncm_codigo: "99010000", produto_nome: "Curso de Pos-Graduacao EAD", quantidade: 1, valor_unitario: 3500.00, valor_total: 3500.00, tipo_cliente: "B2C", pis_atual: 57.75, cofins_atual: 266.00, icms_atual: 0.00, iss_atual: 175.00, ipi_atual: 0.00 },
-    { id_nfe: 15, data_emissao: "2026-07-08", uf_origem: "SC", uf_destino: "SP", ncm_codigo: "84713012", produto_nome: "Servidor Rack Enterprise", quantidade: 1, valor_unitario: 15000.00, valor_total: 15000.00, tipo_cliente: "B2B", pis_atual: 247.50, cofins_atual: 1140.00, icms_atual: 1800.00, iss_atual: 0.00, ipi_atual: 750.00 },
-    { id_nfe: 16, data_emissao: "2026-07-09", uf_origem: "SP", uf_destino: "DF", ncm_codigo: "85171300", produto_nome: "Tablet Pro X", quantidade: 4, valor_unitario: 2200.00, valor_total: 8800.00, tipo_cliente: "B2C", pis_atual: 145.20, cofins_atual: 668.80, icms_atual: 1056.00, iss_atual: 0.00, ipi_atual: 0.00 },
-    { id_nfe: 17, data_emissao: "2026-07-10", uf_origem: "RJ", uf_destino: "RJ", ncm_codigo: "99010000", produto_nome: "Treinamento Corporativo", quantidade: 1, valor_unitario: 5000.00, valor_total: 5000.00, tipo_cliente: "B2B", pis_atual: 82.50, cofins_atual: 380.00, icms_atual: 0.00, iss_atual: 250.00, ipi_atual: 0.00 }
-];
+// Fallback Default Sales Database (starts clean as requested)
+const DEFAULT_VENDAS = [];
 
 // App State
 let systemRules = JSON.parse(JSON.stringify(DEFAULT_RULES));
@@ -584,18 +564,21 @@ function loadInitialSales() {
             return response.text();
         })
         .then(csvText => {
-            parseSalesCSV(csvText);
-            setDatabaseStatus('success', 'Base vendas_exemplo.csv carregada via servidor local.');
+            parseSalesCSV(csvText, true);
         })
         .catch(err => {
-            console.log('Erro ao carregar CSV de vendas via HTTP. Usando banco de dados mockado robusto:', err);
+            console.log('Erro ao carregar CSV de vendas via HTTP:', err);
             loadFallbackSales();
         });
 }
 
 function loadFallbackSales() {
     rawSales = JSON.parse(JSON.stringify(DEFAULT_VENDAS));
-    setDatabaseStatus('warning', 'Base mockada ativa (Modo Offline/Local).');
+    if (rawSales && rawSales.length > 0) {
+        setDatabaseStatus('warning', 'Base mockada ativa (Modo Offline/Local).');
+    } else {
+        setDatabaseStatus('warning', 'Aguardando importação de notas fiscais...');
+    }
     recalculateAndRefresh();
 }
 
@@ -618,7 +601,7 @@ function handleFileUpload(file) {
     reader.readAsText(file, 'UTF-8');
 }
 
-function parseSalesCSV(csvText) {
+function parseSalesCSV(csvText, silent = false) {
     Papa.parse(csvText, {
         header: true,
         dynamicTyping: true,
@@ -710,8 +693,12 @@ function parseSalesCSV(csvText) {
                 
                 recalculateAndRefresh();
             } else {
-                alert('Nenhum dado encontrado no arquivo CSV.');
-                setDatabaseStatus('danger', 'Arquivo CSV vazio.');
+                if (!silent) {
+                    alert('Nenhum dado encontrado no arquivo CSV.');
+                }
+                setDatabaseStatus('warning', 'Aguardando importação de notas fiscais...');
+                rawSales = [];
+                recalculateAndRefresh();
             }
         }
     });
@@ -873,6 +860,31 @@ function updateCharts() {
     const labelColor = isLight ? '#475569' : '#94a3b8';
     const gridColor = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.05)';
 
+    const distributionContainer = document.querySelector("#chart-distribution");
+    const productsContainer = document.querySelector("#chart-products");
+    const regionalContainer = document.querySelector("#chart-regional");
+
+    if (!analyzedSales || analyzedSales.length === 0) {
+        // Destroy existing chart instances to avoid memory leaks/errors
+        if (charts.distribution) { charts.distribution.destroy(); charts.distribution = null; }
+        if (charts.products) { charts.products.destroy(); charts.products = null; }
+        if (charts.regional) { charts.regional.destroy(); charts.regional = null; }
+
+        const emptyMessage = `
+            <div class="empty-chart-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 250px; color: var(--text-muted); gap: 12px; text-align: center; padding: 20px;">
+                <i data-lucide="bar-chart-3" style="width: 36px; height: 36px; color: var(--text-muted); opacity: 0.6;"></i>
+                <span style="font-size: 13px; font-weight: 500;">Aguardando carregamento de notas fiscais...</span>
+            </div>
+        `;
+
+        if (distributionContainer) distributionContainer.innerHTML = emptyMessage;
+        if (productsContainer) productsContainer.innerHTML = emptyMessage;
+        if (regionalContainer) regionalContainer.innerHTML = emptyMessage;
+
+        lucide.createIcons();
+        return;
+    }
+
     // Compute aggregation data
     let currentTaxesSum = { pis: 0, cofins: 0, icms: 0, iss: 0, ipi: 0 };
     let newTaxesSum = { cbs: 0, ibs: 0, pis: 0, cofins: 0, icms: 0, iss: 0, ipi: 0 };
@@ -983,7 +995,8 @@ function updateCharts() {
     if (charts.distribution) {
         charts.distribution.updateOptions(optionsDistribution);
     } else {
-        charts.distribution = new ApexCharts(document.querySelector("#chart-distribution"), optionsDistribution);
+        if (distributionContainer) distributionContainer.innerHTML = "";
+        charts.distribution = new ApexCharts(distributionContainer, optionsDistribution);
         charts.distribution.render();
     }
 
@@ -1039,7 +1052,8 @@ function updateCharts() {
     if (charts.products) {
         charts.products.updateOptions(optionsProducts);
     } else {
-        charts.products = new ApexCharts(document.querySelector("#chart-products"), optionsProducts);
+        if (productsContainer) productsContainer.innerHTML = "";
+        charts.products = new ApexCharts(productsContainer, optionsProducts);
         charts.products.render();
     }
 
@@ -1081,7 +1095,8 @@ function updateCharts() {
     if (charts.regional) {
         charts.regional.updateOptions(optionsRegional);
     } else {
-        charts.regional = new ApexCharts(document.querySelector("#chart-regional"), optionsRegional);
+        if (regionalContainer) regionalContainer.innerHTML = "";
+        charts.regional = new ApexCharts(regionalContainer, optionsRegional);
         charts.regional.render();
     }
 }
