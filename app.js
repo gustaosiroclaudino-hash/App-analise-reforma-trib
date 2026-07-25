@@ -592,6 +592,77 @@ function initEventListeners() {
         e.stopPropagation();
         toggleMultiyearCard();
     });
+
+    // Multi-year Matrix Mode Switcher (Item Individual vs Nota Fiscal Completa)
+    const btnMultiyearModeItem = document.getElementById('btn-multiyear-mode-item');
+    const btnMultiyearModeNfe = document.getElementById('btn-multiyear-mode-nfe');
+    const multiyearNfeSelectorContainer = document.getElementById('multiyear-nfe-selector-container');
+    const multiyearNfeSelect = document.getElementById('multiyear-nfe-select');
+
+    if (btnMultiyearModeItem && btnMultiyearModeNfe) {
+        btnMultiyearModeItem.addEventListener('click', () => {
+            multiyearMode = 'item';
+            btnMultiyearModeItem.classList.add('active');
+            btnMultiyearModeNfe.classList.remove('active');
+            if (multiyearNfeSelectorContainer) multiyearNfeSelectorContainer.style.display = 'none';
+            updateSingleSimulator();
+        });
+
+        btnMultiyearModeNfe.addEventListener('click', () => {
+            multiyearMode = 'nfe';
+            btnMultiyearModeNfe.classList.add('active');
+            btnMultiyearModeItem.classList.remove('active');
+            if (multiyearNfeSelectorContainer) multiyearNfeSelectorContainer.style.display = 'flex';
+            populateMultiyearNfeDropdown();
+            updateSingleSimulator();
+        });
+    }
+
+    if (multiyearNfeSelect) {
+        multiyearNfeSelect.addEventListener('change', (e) => {
+            multiyearTargetNfe = e.target.value;
+            updateSingleSimulator();
+        });
+    }
+}
+
+let multiyearMode = 'item'; // 'item' or 'nfe'
+let multiyearTargetNfe = 'consolidado'; // 'consolidado' or specific id_nfe
+
+function populateMultiyearNfeDropdown() {
+    const multiyearNfeSelect = document.getElementById('multiyear-nfe-select');
+    if (!multiyearNfeSelect) return;
+
+    const currentVal = multiyearNfeSelect.value || 'consolidado';
+    
+    // Group sales by id_nfe
+    const nfeGroupMap = {};
+    if (analyzedSales && analyzedSales.length > 0) {
+        analyzedSales.forEach(s => {
+            const id = s.id_nfe || 'NF Desconhecida';
+            if (!nfeGroupMap[id]) {
+                nfeGroupMap[id] = { count: 0, total: 0, uf: `${s.uf_origem}->${s.uf_destino}` };
+            }
+            nfeGroupMap[id].count += 1;
+            nfeGroupMap[id].total += s.valor_total;
+        });
+    }
+
+    const nfeIds = Object.keys(nfeGroupMap);
+
+    let html = `<option value="consolidado">Todas as Notas Fiscais (Consolidado - ${analyzedSales ? analyzedSales.length : 0} itens)</option>`;
+    nfeIds.forEach(id => {
+        const info = nfeGroupMap[id];
+        html += `<option value="${id}">${id} (${info.count} item${info.count > 1 ? 'ns' : ''} - ${formatCurrency(info.total)})</option>`;
+    });
+
+    multiyearNfeSelect.innerHTML = html;
+    if (nfeIds.includes(currentVal) || currentVal === 'consolidado') {
+        multiyearNfeSelect.value = currentVal;
+    } else if (nfeIds.length > 0) {
+        multiyearNfeSelect.value = nfeIds[0];
+        multiyearTargetNfe = nfeIds[0];
+    }
 }
 
 // Load Rules from JSON & initial CSV sales
@@ -1186,6 +1257,7 @@ function recalculateAndRefresh() {
     updateKPIs();
     updateCharts();
     renderTable();
+    populateMultiyearNfeDropdown();
     updateSingleSimulator();
 }
 
@@ -1924,153 +1996,275 @@ function updateMultiyearMatrix(name, ncm, totalVal, ruleTypeSelect, targetSale =
 
     if (!tbody) return;
 
-    // Format NCM display
-    let cleanNcmDisplay = String(ncm || "84713012").replace(/\D/g, "");
-    if (cleanNcmDisplay.length === 8) {
-        cleanNcmDisplay = `${cleanNcmDisplay.slice(0,4)}.${cleanNcmDisplay.slice(4,6)}.${cleanNcmDisplay.slice(6,8)}`;
-    }
-    if (multiyearNcm) multiyearNcm.textContent = cleanNcmDisplay || "8471.30.12";
-    if (multiyearName) multiyearName.textContent = name || "Produto / Serviço";
-    if (multiyearVal) multiyearVal.textContent = formatCurrency(totalVal);
-    
-    if (multiyearCfop) {
-        if (targetSale && targetSale.id_nfe) {
-            const ufText = (targetSale.uf_origem && targetSale.uf_destino) ? ` (${targetSale.uf_origem}->${targetSale.uf_destino})` : '';
-            multiyearCfop.textContent = `${targetSale.id_nfe}${ufText}`;
-        } else {
-            multiyearCfop.textContent = "CFOP: 5101";
-        }
-    }
-
     const cbsStd = parseFloat(cbsSlider.value) / 100;
     const ibsStd = parseFloat(ibsSlider.value) / 100;
-
-    // Retrieve initial taxes
-    let pisVal = 0, cofinsVal = 0, icmsVal = 0, issVal = 0, ipiVal = 0;
-    let foundMatch = false;
-
-    if (targetSale) {
-        const scale = targetSale.valor_total > 0 ? (totalVal / targetSale.valor_total) : 1;
-        pisVal = (targetSale.pis_atual || 0) * scale;
-        cofinsVal = (targetSale.cofins_atual || 0) * scale;
-        icmsVal = (targetSale.icms_atual || 0) * scale;
-        issVal = (targetSale.iss_atual || 0) * scale;
-        ipiVal = (targetSale.ipi_atual || 0) * scale;
-        foundMatch = true;
-    } else if (analyzedSales && analyzedSales.length > 0) {
-        const cleanNcm = String(ncm || "").replace(/\D/g, "");
-        const match = analyzedSales.find(s => 
-            (cleanNcm && s.ncm_codigo === cleanNcm) || 
-            (name && String(s.produto_nome).toLowerCase().trim() === String(name).toLowerCase().trim())
-        );
-        if (match) {
-            const scale = match.valor_total > 0 ? (totalVal / match.valor_total) : 1;
-            pisVal = (match.pis_atual || 0) * scale;
-            cofinsVal = (match.cofins_atual || 0) * scale;
-            icmsVal = (match.icms_atual || 0) * scale;
-            issVal = (match.iss_atual || 0) * scale;
-            ipiVal = (match.ipi_atual || 0) * scale;
-            foundMatch = true;
-        }
-    }
-
-    if (!foundMatch) {
-        if (ruleTypeSelect === 'isento') {
-            // all 0
-        } else if (ruleTypeSelect === 'reducao_60') {
-            icmsVal = totalVal * 0.12;
-        } else {
-            pisVal = totalVal * 0.0165;
-            cofinsVal = totalVal * 0.0760;
-            icmsVal = totalVal * 0.1500;
-        }
-    }
-
-    const currentTax = pisVal + cofinsVal + icmsVal + issVal + ipiVal;
-    const baseValue = Math.max(0, totalVal - currentTax);
-
-    const cbsFactor = ruleTypeSelect === 'isento' ? 0.0 : (ruleTypeSelect === 'reducao_60' ? 0.4 : 1.0);
-    const ibsFactor = ruleTypeSelect === 'isento' ? 0.0 : (ruleTypeSelect === 'reducao_60' ? 0.4 : 1.0);
-
-    let isZFM = false;
-    if (targetSale) {
-        isZFM = targetSale.uf_origem === 'AM' || targetSale.uf_destino === 'AM';
-    }
-
-    let nominalIcmsRate = 0.18;
-    const vBasePiscofinsExIcms = totalVal - pisVal - cofinsVal;
-    if (icmsVal > 0 && vBasePiscofinsExIcms > 0) {
-        nominalIcmsRate = Math.min(0.35, Math.max(0.04, icmsVal / vBasePiscofinsExIcms));
-    }
-
     const years = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033];
 
     const matrix = {
-        icms: [],
-        ibs: [],
-        pis: [],
-        cofins: [],
-        cbs: [],
-        ipi: [],
-        is: [],
-        ii: [],
-        total: []
+        icms: years.map(() => 0),
+        ibs: years.map(() => 0),
+        pis: years.map(() => 0),
+        cofins: years.map(() => 0),
+        cbs: years.map(() => 0),
+        ipi: years.map(() => 0),
+        is: years.map(() => 0),
+        ii: years.map(() => 0),
+        total: years.map(() => 0)
     };
 
-    years.forEach(y => {
-        const yRules = YEAR_TRANSITION_RULES[y];
-
-        const cbsRate = yRules.cbsRateFunc(cbsStd) * cbsFactor;
-        const ibsRate = yRules.ibsRateFunc(ibsStd) * ibsFactor;
-
-        const cbsValCalc = baseValue * cbsRate;
-        const ibsValCalc = baseValue * ibsRate;
-        const cbsIbsSum = cbsValCalc + ibsValCalc;
-
-        const pisRes = pisVal * yRules.residualPisCofinsPct;
-        const cofinsRes = cofinsVal * yRules.residualPisCofinsPct;
-        const ipiRes = ipiVal * (isZFM ? 1.0 : yRules.residualIpiPct);
-        const issRes = issVal * yRules.residualIcmsIssPct;
-
-        const effectiveIcmsRate = nominalIcmsRate * yRules.residualIcmsIssPct;
-        let icmsResFisco = 0;
-        let icmsResContrib = 0;
-
-        if (effectiveIcmsRate > 0) {
-            if (yRules.residualPisCofinsPct === 0) {
-                const vProdFisco = (baseValue + effectiveIcmsRate * cbsIbsSum) / (1 - effectiveIcmsRate);
-                icmsResFisco = (vProdFisco + cbsIbsSum) * effectiveIcmsRate;
-
-                const vProdContrib = baseValue / (1 - effectiveIcmsRate);
-                icmsResContrib = vProdContrib * effectiveIcmsRate;
+    if (multiyearMode === 'item') {
+        // Format NCM display
+        let cleanNcmDisplay = String(ncm || "84713012").replace(/\D/g, "");
+        if (cleanNcmDisplay.length === 8) {
+            cleanNcmDisplay = `${cleanNcmDisplay.slice(0,4)}.${cleanNcmDisplay.slice(4,6)}.${cleanNcmDisplay.slice(6,8)}`;
+        }
+        if (multiyearNcm) multiyearNcm.textContent = cleanNcmDisplay || "8471.30.12";
+        if (multiyearName) multiyearName.textContent = name || "Produto / Serviço";
+        if (multiyearVal) multiyearVal.textContent = formatCurrency(totalVal);
+        
+        if (multiyearCfop) {
+            if (targetSale && targetSale.id_nfe) {
+                const ufText = (targetSale.uf_origem && targetSale.uf_destino) ? ` (${targetSale.uf_origem}->${targetSale.uf_destino})` : '';
+                multiyearCfop.textContent = `${targetSale.id_nfe}${ufText}`;
             } else {
-                icmsResFisco = icmsVal * yRules.residualIcmsIssPct;
-                icmsResContrib = icmsVal * yRules.residualIcmsIssPct;
+                multiyearCfop.textContent = "CFOP: 5101";
             }
         }
 
-        const icmsRes = (legalThesis === 'fisco') ? icmsResFisco : icmsResContrib;
+        // Retrieve initial taxes
+        let pisVal = 0, cofinsVal = 0, icmsVal = 0, issVal = 0, ipiVal = 0;
+        let foundMatch = false;
 
-        const isValCalc = 0;
-        const iiValCalc = 0;
-
-        let totalValYear = 0;
-        if (yRules.neutralized) {
-            totalValYear = currentTax;
-        } else {
-            totalValYear = icmsRes + ibsValCalc + pisRes + cofinsRes + cbsValCalc + ipiRes + isValCalc + iiValCalc + issRes;
+        if (targetSale) {
+            const scale = targetSale.valor_total > 0 ? (totalVal / targetSale.valor_total) : 1;
+            pisVal = (targetSale.pis_atual || 0) * scale;
+            cofinsVal = (targetSale.cofins_atual || 0) * scale;
+            icmsVal = (targetSale.icms_atual || 0) * scale;
+            issVal = (targetSale.iss_atual || 0) * scale;
+            ipiVal = (targetSale.ipi_atual || 0) * scale;
+            foundMatch = true;
+        } else if (analyzedSales && analyzedSales.length > 0) {
+            const cleanNcm = String(ncm || "").replace(/\D/g, "");
+            const match = analyzedSales.find(s => 
+                (cleanNcm && s.ncm_codigo === cleanNcm) || 
+                (name && String(s.produto_nome).toLowerCase().trim() === String(name).toLowerCase().trim())
+            );
+            if (match) {
+                const scale = match.valor_total > 0 ? (totalVal / match.valor_total) : 1;
+                pisVal = (match.pis_atual || 0) * scale;
+                cofinsVal = (match.cofins_atual || 0) * scale;
+                icmsVal = (match.icms_atual || 0) * scale;
+                issVal = (match.iss_atual || 0) * scale;
+                ipiVal = (match.ipi_atual || 0) * scale;
+                foundMatch = true;
+            }
         }
 
-        matrix.icms.push(icmsRes);
-        matrix.ibs.push(ibsValCalc);
-        matrix.pis.push(pisRes);
-        matrix.cofins.push(cofinsRes);
-        matrix.cbs.push(cbsValCalc);
-        matrix.ipi.push(ipiRes);
-        matrix.is.push(isValCalc);
-        matrix.ii.push(iiValCalc);
-        matrix.total.push(totalValYear);
-    });
+        if (!foundMatch) {
+            if (ruleTypeSelect === 'isento') {
+                // all 0
+            } else if (ruleTypeSelect === 'reducao_60') {
+                icmsVal = totalVal * 0.12;
+            } else {
+                pisVal = totalVal * 0.0165;
+                cofinsVal = totalVal * 0.0760;
+                icmsVal = totalVal * 0.1500;
+            }
+        }
+
+        const currentTax = pisVal + cofinsVal + icmsVal + issVal + ipiVal;
+        const baseValue = Math.max(0, totalVal - currentTax);
+
+        const cbsFactor = ruleTypeSelect === 'isento' ? 0.0 : (ruleTypeSelect === 'reducao_60' ? 0.4 : 1.0);
+        const ibsFactor = ruleTypeSelect === 'isento' ? 0.0 : (ruleTypeSelect === 'reducao_60' ? 0.4 : 1.0);
+
+        let isZFM = false;
+        if (targetSale) {
+            isZFM = targetSale.uf_origem === 'AM' || targetSale.uf_destino === 'AM';
+        }
+
+        let nominalIcmsRate = 0.18;
+        const vBasePiscofinsExIcms = totalVal - pisVal - cofinsVal;
+        if (icmsVal > 0 && vBasePiscofinsExIcms > 0) {
+            nominalIcmsRate = Math.min(0.35, Math.max(0.04, icmsVal / vBasePiscofinsExIcms));
+        }
+
+        years.forEach((y, idx) => {
+            const yRules = YEAR_TRANSITION_RULES[y];
+
+            const cbsRate = yRules.cbsRateFunc(cbsStd) * cbsFactor;
+            const ibsRate = yRules.ibsRateFunc(ibsStd) * ibsFactor;
+
+            const cbsValCalc = baseValue * cbsRate;
+            const ibsValCalc = baseValue * ibsRate;
+            const cbsIbsSum = cbsValCalc + ibsValCalc;
+
+            const pisRes = pisVal * yRules.residualPisCofinsPct;
+            const cofinsRes = cofinsVal * yRules.residualPisCofinsPct;
+            const ipiRes = ipiVal * (isZFM ? 1.0 : yRules.residualIpiPct);
+            const issRes = issVal * yRules.residualIcmsIssPct;
+
+            const effectiveIcmsRate = nominalIcmsRate * yRules.residualIcmsIssPct;
+            let icmsResFisco = 0;
+            let icmsResContrib = 0;
+
+            if (effectiveIcmsRate > 0) {
+                if (yRules.residualPisCofinsPct === 0) {
+                    const vProdFisco = (baseValue + effectiveIcmsRate * cbsIbsSum) / (1 - effectiveIcmsRate);
+                    icmsResFisco = (vProdFisco + cbsIbsSum) * effectiveIcmsRate;
+
+                    const vProdContrib = baseValue / (1 - effectiveIcmsRate);
+                    icmsResContrib = vProdContrib * effectiveIcmsRate;
+                } else {
+                    icmsResFisco = icmsVal * yRules.residualIcmsIssPct;
+                    icmsResContrib = icmsVal * yRules.residualIcmsIssPct;
+                }
+            }
+
+            const icmsRes = (legalThesis === 'fisco') ? icmsResFisco : icmsResContrib;
+
+            const isValCalc = 0;
+            const iiValCalc = 0;
+
+            let totalValYear = 0;
+            if (yRules.neutralized) {
+                totalValYear = currentTax;
+            } else {
+                totalValYear = icmsRes + ibsValCalc + pisRes + cofinsRes + cbsValCalc + ipiRes + isValCalc + iiValCalc + issRes;
+            }
+
+            matrix.icms[idx] = icmsRes;
+            matrix.ibs[idx] = ibsValCalc;
+            matrix.pis[idx] = pisRes;
+            matrix.cofins[idx] = cofinsRes;
+            matrix.cbs[idx] = cbsValCalc;
+            matrix.ipi[idx] = ipiRes;
+            matrix.is[idx] = isValCalc;
+            matrix.ii[idx] = iiValCalc;
+            matrix.total[idx] = totalValYear;
+        });
+
+    } else {
+        // Mode === 'nfe' (Nota Fiscal Completa ou Consolidada)
+        let itemsToProcess = [];
+        if (multiyearTargetNfe === 'consolidado') {
+            itemsToProcess = analyzedSales || [];
+        } else {
+            itemsToProcess = (analyzedSales || []).filter(s => String(s.id_nfe) === String(multiyearTargetNfe));
+        }
+
+        if (itemsToProcess.length === 0 && analyzedSales && analyzedSales.length > 0) {
+            itemsToProcess = analyzedSales;
+        }
+
+        let totalNfeValue = 0;
+        itemsToProcess.forEach(item => totalNfeValue += item.valor_total);
+
+        // Update Header display for full NF-e
+        if (multiyearNcm) {
+            multiyearNcm.textContent = multiyearTargetNfe === 'consolidado' ? 'TODAS AS NFES' : String(multiyearTargetNfe).toUpperCase();
+        }
+        if (multiyearName) {
+            multiyearName.textContent = multiyearTargetNfe === 'consolidado' 
+                ? `Consolidado (${itemsToProcess.length} itens)`
+                : `Nota Fiscal (${itemsToProcess.length} item${itemsToProcess.length > 1 ? 'ns' : ''})`;
+        }
+        if (multiyearVal) multiyearVal.textContent = formatCurrency(totalNfeValue);
+        if (multiyearCfop) {
+            const firstItem = itemsToProcess[0];
+            const ufText = (firstItem && firstItem.uf_origem && firstItem.uf_destino) ? `${firstItem.uf_origem}->${firstItem.uf_destino}` : 'BR';
+            multiyearCfop.textContent = `Operação: ${ufText}`;
+        }
+
+        // Aggregate calculations for each item across every year 2026..2033
+        itemsToProcess.forEach(item => {
+            const itemVal = item.valor_total;
+            const itemPis = item.pis_atual || 0;
+            const itemCofins = item.cofins_atual || 0;
+            const itemIcms = item.icms_atual || 0;
+            const itemIss = item.iss_atual || 0;
+            const itemIpi = item.ipi_atual || 0;
+            const itemTaxCurrent = itemPis + itemCofins + itemIcms + itemIss + itemIpi;
+            const itemBaseLiquida = Math.max(0, itemVal - itemTaxCurrent);
+
+            const rule = matchRule(item.ncm_codigo, item.produto_nome);
+            let cbsFactor = 1.0;
+            let ibsFactor = 1.0;
+
+            if (rule) {
+                if (rule.tipo_regra === 'isento') {
+                    cbsFactor = 0.0;
+                    ibsFactor = 0.0;
+                } else if (rule.tipo_regra === 'reducao_60') {
+                    cbsFactor = 0.4;
+                    ibsFactor = 0.4;
+                } else if (rule.tipo_regra === 'reducao_30') {
+                    cbsFactor = 0.7;
+                    ibsFactor = 0.7;
+                }
+            }
+
+            const isZFM = item.uf_origem === 'AM' || item.uf_destino === 'AM';
+
+            let nominalIcmsRate = 0.18;
+            const vBasePiscofinsExIcms = itemVal - itemPis - itemCofins;
+            if (itemIcms > 0 && vBasePiscofinsExIcms > 0) {
+                nominalIcmsRate = Math.min(0.35, Math.max(0.04, itemIcms / vBasePiscofinsExIcms));
+            }
+
+            years.forEach((y, idx) => {
+                const yRules = YEAR_TRANSITION_RULES[y];
+
+                const cbsRate = yRules.cbsRateFunc(cbsStd) * cbsFactor;
+                const ibsRate = yRules.ibsRateFunc(ibsStd) * ibsFactor;
+
+                const cbsValCalc = itemBaseLiquida * cbsRate;
+                const ibsValCalc = itemBaseLiquida * ibsRate;
+                const cbsIbsSum = cbsValCalc + ibsValCalc;
+
+                const pisRes = itemPis * yRules.residualPisCofinsPct;
+                const cofinsRes = itemCofins * yRules.residualPisCofinsPct;
+                const ipiRes = itemIpi * (isZFM ? 1.0 : yRules.residualIpiPct);
+                const issRes = itemIss * yRules.residualIcmsIssPct;
+
+                const effectiveIcmsRate = nominalIcmsRate * yRules.residualIcmsIssPct;
+                let icmsResFisco = 0;
+                let icmsResContrib = 0;
+
+                if (effectiveIcmsRate > 0) {
+                    if (yRules.residualPisCofinsPct === 0) {
+                        const vProdFisco = (itemBaseLiquida + effectiveIcmsRate * cbsIbsSum) / (1 - effectiveIcmsRate);
+                        icmsResFisco = (vProdFisco + cbsIbsSum) * effectiveIcmsRate;
+
+                        const vProdContrib = itemBaseLiquida / (1 - effectiveIcmsRate);
+                        icmsResContrib = vProdContrib * effectiveIcmsRate;
+                    } else {
+                        icmsResFisco = itemIcms * yRules.residualIcmsIssPct;
+                        icmsResContrib = itemIcms * yRules.residualIcmsIssPct;
+                    }
+                }
+
+                const icmsRes = (legalThesis === 'fisco') ? icmsResFisco : icmsResContrib;
+
+                let totalValYear = 0;
+                if (yRules.neutralized) {
+                    totalValYear = itemTaxCurrent;
+                } else {
+                    totalValYear = icmsRes + ibsValCalc + pisRes + cofinsRes + cbsValCalc + ipiRes + issRes;
+                }
+
+                matrix.icms[idx] += icmsRes;
+                matrix.ibs[idx] += ibsValCalc;
+                matrix.pis[idx] += pisRes;
+                matrix.cofins[idx] += cofinsRes;
+                matrix.cbs[idx] += cbsValCalc;
+                matrix.ipi[idx] += ipiRes;
+                matrix.is[idx] += 0;
+                matrix.ii[idx] += 0;
+                matrix.total[idx] += totalValYear;
+            });
+        });
+    }
 
     const rowsDef = [
         { label: 'ICMS', key: 'icms', className: 'row-icms', info: null },

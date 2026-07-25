@@ -1048,4 +1048,37 @@ body.light-mode .multiyear-table tr.row-total td {
     color: #0f172a;
 }
 
+/* Multi-year Mode Switcher Buttons */
+.btn-multiyear-mode {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-multiyear-mode:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-multiyear-mode.active {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+body.light-mode .btn-multiyear-mode.active {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+
 

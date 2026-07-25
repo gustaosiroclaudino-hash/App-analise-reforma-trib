@@ -334,6 +334,32 @@
 
                 <!-- Wide Multi-Year Simulation Matrix (Inspired by user image) -->
                 <div class="card sim-multiyear-card" id="sim-multiyear-container" style="margin-top: 24px; width: 100%;">
+                    <!-- Multiyear View Control Bar -->
+                    <div class="multiyear-top-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 13px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="layers" style="width: 16px; height: 16px; color: var(--primary);"></i>
+                                Visão da Simulação:
+                            </span>
+                            <div class="multiyear-mode-switch" style="display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 3px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <button id="btn-multiyear-mode-item" class="btn-multiyear-mode active">
+                                    <i data-lucide="package" style="width: 13px; height: 13px;"></i> Item Individual
+                                </button>
+                                <button id="btn-multiyear-mode-nfe" class="btn-multiyear-mode">
+                                    <i data-lucide="file-text" style="width: 13px; height: 13px;"></i> Nota Fiscal Completa
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dropdown to select NF-e when mode is 'nfe' -->
+                        <div id="multiyear-nfe-selector-container" style="display: none; align-items: center; gap: 8px;">
+                            <label for="multiyear-nfe-select" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Selecione a NF-e:</label>
+                            <select id="multiyear-nfe-select" class="form-input" style="padding: 4px 10px; font-size: 12px; min-width: 260px; max-width: 380px; cursor: pointer;">
+                                <option value="consolidado">Todas as Notas Fiscais (Consolidado)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="multiyear-header" id="multiyear-header">
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                             <span class="multiyear-bullet">•</span>
