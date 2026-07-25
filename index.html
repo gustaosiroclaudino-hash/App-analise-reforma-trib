@@ -327,10 +327,50 @@
                                     Conforme a EC 132/2023 e a LC 214/2025, os impostos em teste servem para homologar os sistemas e compensar contra as obrigações de PIS/Cofins.
                                 </span>
                             </div>
-                        </div>
                     </div>
 
                 </div>
+
+                <!-- Wide Multi-Year Simulation Matrix (Inspired by user image) -->
+                <div class="card sim-multiyear-card" id="sim-multiyear-container" style="margin-top: 24px;">
+                    <div class="multiyear-header" id="multiyear-header">
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <span class="multiyear-bullet">•</span>
+                            <h3 id="multiyear-title" style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span id="multiyear-ncm" style="color: var(--primary); font-family: monospace; font-size: 14px;">8471.30.12</span>
+                                <span style="color: var(--text-muted);">-</span>
+                                <span id="multiyear-name" style="color: var(--text-primary);">Notebook Pro</span>
+                                <span id="multiyear-cfop" style="font-size: 12px; color: var(--text-muted); font-weight: 500; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color);">CFOP: 5101</span>
+                                <span id="multiyear-val" style="color: var(--accent); font-weight: 800; font-size: 16px; margin-left: 6px;">R$ 4.500,00</span>
+                            </h3>
+                        </div>
+                        <button class="btn-toggle-multiyear" id="btn-toggle-multiyear" title="Recolher / Expandir Tabela">
+                            <i data-lucide="chevron-up" id="multiyear-chevron-icon"></i>
+                        </button>
+                    </div>
+
+                    <div class="multiyear-content" id="multiyear-content">
+                        <table class="multiyear-table" id="multiyear-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding-left: 16px;">Tributos</th>
+                                    <th>2026</th>
+                                    <th>2027</th>
+                                    <th>2028</th>
+                                    <th>2029</th>
+                                    <th>2030</th>
+                                    <th>2031</th>
+                                    <th>2032</th>
+                                    <th>2033</th>
+                                </tr>
+                            </thead>
+                            <tbody id="multiyear-table-body">
+                                <!-- Filled dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </section>
 

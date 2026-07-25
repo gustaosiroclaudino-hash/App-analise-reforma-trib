@@ -897,3 +897,153 @@ body.light-mode .btn-year.active {
     }
 }
 
+/* Wide Multi-Year Simulation Matrix Table */
+.sim-multiyear-card {
+    padding: 20px 24px;
+    border-radius: var(--border-radius);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.multiyear-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    user-select: none;
+}
+
+.multiyear-bullet {
+    font-size: 20px;
+    line-height: 1;
+    color: var(--primary);
+}
+
+.btn-toggle-multiyear {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-toggle-multiyear:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+}
+
+.multiyear-content {
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    overflow-x: auto;
+}
+
+.multiyear-content.collapsed {
+    display: none;
+}
+
+.multiyear-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 12px;
+    font-size: 13px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.multiyear-table th {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    font-weight: 700;
+    padding: 12px 14px;
+    text-align: center;
+    border-bottom: 2px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.multiyear-table th.active-year-th {
+    background: rgba(99, 102, 241, 0.25);
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+}
+
+.multiyear-table th:hover {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.multiyear-table td {
+    padding: 10px 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.multiyear-table td.active-year-col {
+    font-weight: 700;
+    background: rgba(99, 102, 241, 0.06);
+}
+
+/* Photo-inspired Row Highlight Colors */
+.multiyear-table tr.row-ibs td {
+    background: rgba(59, 130, 246, 0.12);
+    color: #93c5fd;
+    font-weight: 600;
+}
+
+.multiyear-table tr.row-cbs td {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fde047;
+    font-weight: 600;
+}
+
+.multiyear-table tr.row-is td {
+    background: rgba(236, 72, 153, 0.12);
+    color: #f472b6;
+    font-weight: 600;
+}
+
+.multiyear-table tr.row-total td {
+    background: rgba(99, 102, 241, 0.18);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 14px;
+    border-top: 1px solid var(--primary-glow);
+    border-bottom: none;
+}
+
+/* Light mode adjustments for table row highlights */
+body.light-mode .multiyear-table th {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body.light-mode .multiyear-table tr.row-ibs td {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+body.light-mode .multiyear-table tr.row-cbs td {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+body.light-mode .multiyear-table tr.row-is td {
+    background: #fce7f3;
+    color: #be185d;
+}
+
+body.light-mode .multiyear-table tr.row-total td {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+

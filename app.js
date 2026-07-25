@@ -571,6 +571,27 @@ function initEventListeners() {
     if (btnSimTabSummary) btnSimTabSummary.addEventListener('click', () => switchSimTab('summary'));
     if (btnSimTabBreakdown) btnSimTabBreakdown.addEventListener('click', () => switchSimTab('breakdown'));
     if (btnSimTabTheses) btnSimTabTheses.addEventListener('click', () => switchSimTab('theses'));
+
+    // Toggle multi-year matrix card
+    const multiyearHeader = document.getElementById('multiyear-header');
+    const multiyearContent = document.getElementById('multiyear-content');
+    const btnToggleMultiyear = document.getElementById('btn-toggle-multiyear');
+    const multiyearChevronIcon = document.getElementById('multiyear-chevron-icon');
+
+    function toggleMultiyearCard() {
+        if (!multiyearContent) return;
+        const isCollapsed = multiyearContent.classList.toggle('collapsed');
+        if (multiyearChevronIcon) {
+            multiyearChevronIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-down' : 'chevron-up');
+            lucide.createIcons();
+        }
+    }
+
+    if (multiyearHeader) multiyearHeader.addEventListener('click', toggleMultiyearCard);
+    if (btnToggleMultiyear) btnToggleMultiyear.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMultiyearCard();
+    });
 }
 
 // Load Rules from JSON & initial CSV sales
@@ -1887,7 +1908,229 @@ function updateSingleSimulator(saleOverride = null) {
         compIbsEl.className = 'badge ' + yearRules.ibsClass;
     }
 
+    // Update Multi-Year Transition Matrix (inspired by NFe Item transition table)
+    updateMultiyearMatrix(name, ncm, totalVal, ruleTypeSelect, targetSale);
+
     // Recreate icons in simulation breakdown
+    lucide.createIcons();
+}
+
+function updateMultiyearMatrix(name, ncm, totalVal, ruleTypeSelect, targetSale = null) {
+    const multiyearNcm = document.getElementById('multiyear-ncm');
+    const multiyearName = document.getElementById('multiyear-name');
+    const multiyearCfop = document.getElementById('multiyear-cfop');
+    const multiyearVal = document.getElementById('multiyear-val');
+    const tbody = document.getElementById('multiyear-table-body');
+
+    if (!tbody) return;
+
+    // Format NCM display
+    let cleanNcmDisplay = String(ncm || "84713012").replace(/\D/g, "");
+    if (cleanNcmDisplay.length === 8) {
+        cleanNcmDisplay = `${cleanNcmDisplay.slice(0,4)}.${cleanNcmDisplay.slice(4,6)}.${cleanNcmDisplay.slice(6,8)}`;
+    }
+    if (multiyearNcm) multiyearNcm.textContent = cleanNcmDisplay || "8471.30.12";
+    if (multiyearName) multiyearName.textContent = name || "Produto / Serviço";
+    if (multiyearVal) multiyearVal.textContent = formatCurrency(totalVal);
+    
+    if (multiyearCfop) {
+        if (targetSale && targetSale.id_nfe) {
+            const ufText = (targetSale.uf_origem && targetSale.uf_destino) ? ` (${targetSale.uf_origem}->${targetSale.uf_destino})` : '';
+            multiyearCfop.textContent = `${targetSale.id_nfe}${ufText}`;
+        } else {
+            multiyearCfop.textContent = "CFOP: 5101";
+        }
+    }
+
+    const cbsStd = parseFloat(cbsSlider.value) / 100;
+    const ibsStd = parseFloat(ibsSlider.value) / 100;
+
+    // Retrieve initial taxes
+    let pisVal = 0, cofinsVal = 0, icmsVal = 0, issVal = 0, ipiVal = 0;
+    let foundMatch = false;
+
+    if (targetSale) {
+        const scale = targetSale.valor_total > 0 ? (totalVal / targetSale.valor_total) : 1;
+        pisVal = (targetSale.pis_atual || 0) * scale;
+        cofinsVal = (targetSale.cofins_atual || 0) * scale;
+        icmsVal = (targetSale.icms_atual || 0) * scale;
+        issVal = (targetSale.iss_atual || 0) * scale;
+        ipiVal = (targetSale.ipi_atual || 0) * scale;
+        foundMatch = true;
+    } else if (analyzedSales && analyzedSales.length > 0) {
+        const cleanNcm = String(ncm || "").replace(/\D/g, "");
+        const match = analyzedSales.find(s => 
+            (cleanNcm && s.ncm_codigo === cleanNcm) || 
+            (name && String(s.produto_nome).toLowerCase().trim() === String(name).toLowerCase().trim())
+        );
+        if (match) {
+            const scale = match.valor_total > 0 ? (totalVal / match.valor_total) : 1;
+            pisVal = (match.pis_atual || 0) * scale;
+            cofinsVal = (match.cofins_atual || 0) * scale;
+            icmsVal = (match.icms_atual || 0) * scale;
+            issVal = (match.iss_atual || 0) * scale;
+            ipiVal = (match.ipi_atual || 0) * scale;
+            foundMatch = true;
+        }
+    }
+
+    if (!foundMatch) {
+        if (ruleTypeSelect === 'isento') {
+            // all 0
+        } else if (ruleTypeSelect === 'reducao_60') {
+            icmsVal = totalVal * 0.12;
+        } else {
+            pisVal = totalVal * 0.0165;
+            cofinsVal = totalVal * 0.0760;
+            icmsVal = totalVal * 0.1500;
+        }
+    }
+
+    const currentTax = pisVal + cofinsVal + icmsVal + issVal + ipiVal;
+    const baseValue = Math.max(0, totalVal - currentTax);
+
+    const cbsFactor = ruleTypeSelect === 'isento' ? 0.0 : (ruleTypeSelect === 'reducao_60' ? 0.4 : 1.0);
+    const ibsFactor = ruleTypeSelect === 'isento' ? 0.0 : (ruleTypeSelect === 'reducao_60' ? 0.4 : 1.0);
+
+    let isZFM = false;
+    if (targetSale) {
+        isZFM = targetSale.uf_origem === 'AM' || targetSale.uf_destino === 'AM';
+    }
+
+    let nominalIcmsRate = 0.18;
+    const vBasePiscofinsExIcms = totalVal - pisVal - cofinsVal;
+    if (icmsVal > 0 && vBasePiscofinsExIcms > 0) {
+        nominalIcmsRate = Math.min(0.35, Math.max(0.04, icmsVal / vBasePiscofinsExIcms));
+    }
+
+    const years = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033];
+
+    const matrix = {
+        icms: [],
+        ibs: [],
+        pis: [],
+        cofins: [],
+        cbs: [],
+        ipi: [],
+        is: [],
+        ii: [],
+        total: []
+    };
+
+    years.forEach(y => {
+        const yRules = YEAR_TRANSITION_RULES[y];
+
+        const cbsRate = yRules.cbsRateFunc(cbsStd) * cbsFactor;
+        const ibsRate = yRules.ibsRateFunc(ibsStd) * ibsFactor;
+
+        const cbsValCalc = baseValue * cbsRate;
+        const ibsValCalc = baseValue * ibsRate;
+        const cbsIbsSum = cbsValCalc + ibsValCalc;
+
+        const pisRes = pisVal * yRules.residualPisCofinsPct;
+        const cofinsRes = cofinsVal * yRules.residualPisCofinsPct;
+        const ipiRes = ipiVal * (isZFM ? 1.0 : yRules.residualIpiPct);
+        const issRes = issVal * yRules.residualIcmsIssPct;
+
+        const effectiveIcmsRate = nominalIcmsRate * yRules.residualIcmsIssPct;
+        let icmsResFisco = 0;
+        let icmsResContrib = 0;
+
+        if (effectiveIcmsRate > 0) {
+            if (yRules.residualPisCofinsPct === 0) {
+                const vProdFisco = (baseValue + effectiveIcmsRate * cbsIbsSum) / (1 - effectiveIcmsRate);
+                icmsResFisco = (vProdFisco + cbsIbsSum) * effectiveIcmsRate;
+
+                const vProdContrib = baseValue / (1 - effectiveIcmsRate);
+                icmsResContrib = vProdContrib * effectiveIcmsRate;
+            } else {
+                icmsResFisco = icmsVal * yRules.residualIcmsIssPct;
+                icmsResContrib = icmsVal * yRules.residualIcmsIssPct;
+            }
+        }
+
+        const icmsRes = (legalThesis === 'fisco') ? icmsResFisco : icmsResContrib;
+
+        const isValCalc = 0;
+        const iiValCalc = 0;
+
+        let totalValYear = 0;
+        if (yRules.neutralized) {
+            totalValYear = currentTax;
+        } else {
+            totalValYear = icmsRes + ibsValCalc + pisRes + cofinsRes + cbsValCalc + ipiRes + isValCalc + iiValCalc + issRes;
+        }
+
+        matrix.icms.push(icmsRes);
+        matrix.ibs.push(ibsValCalc);
+        matrix.pis.push(pisRes);
+        matrix.cofins.push(cofinsRes);
+        matrix.cbs.push(cbsValCalc);
+        matrix.ipi.push(ipiRes);
+        matrix.is.push(isValCalc);
+        matrix.ii.push(iiValCalc);
+        matrix.total.push(totalValYear);
+    });
+
+    const rowsDef = [
+        { label: 'ICMS', key: 'icms', className: 'row-icms', info: null },
+        { label: 'IBS', key: 'ibs', className: 'row-ibs', info: 'Imposto sobre Bens e Serviços (Estadual/Municipal)' },
+        { label: 'PIS', key: 'pis', className: 'row-pis', info: null },
+        { label: 'COFINS', key: 'cofins', className: 'row-cofins', info: null },
+        { label: 'CBS', key: 'cbs', className: 'row-cbs', info: 'Contribuição sobre Bens e Serviços (Federal)' },
+        { label: 'IPI', key: 'ipi', className: 'row-ipi', info: 'Alíquota zero para a maioria das mercadorias a partir de 2027 (exceto ZFM)' },
+        { label: 'IS', key: 'is', className: 'row-is', info: 'Imposto Seletivo (sobre produtos nocivos à saúde/meio ambiente)' },
+        { label: 'II', key: 'ii', className: 'row-ii', info: 'Imposto de Importação' },
+        { label: 'Total', key: 'total', className: 'row-total', info: null }
+    ];
+
+    let html = '';
+    rowsDef.forEach(r => {
+        html += `<tr class="${r.className}">`;
+        
+        let labelHTML = r.label;
+        if (r.info) {
+            labelHTML += ` <i data-lucide="info" title="${r.info}" class="info-tooltip-icon" style="width: 14px; height: 14px; vertical-align: middle; opacity: 0.7; cursor: help;"></i>`;
+        }
+
+        html += `<td style="font-weight: 700; text-align: left; padding-left: 16px;">${labelHTML}</td>`;
+
+        years.forEach((y, idx) => {
+            const val = matrix[r.key][idx];
+            const isCurrentActiveYear = (y === currentYear);
+            const activeYearClass = isCurrentActiveYear ? ' active-year-col' : '';
+            html += `<td class="${activeYearClass}">${formatCurrency(val)}</td>`;
+        });
+
+        html += `</tr>`;
+    });
+
+    tbody.innerHTML = html;
+
+    // Attach click events on year column headers to select year
+    const thEls = document.querySelectorAll('#multiyear-table th');
+    thEls.forEach((th, idx) => {
+        if (idx > 0) {
+            const yearNum = years[idx - 1];
+            th.style.cursor = 'pointer';
+            th.title = `Clique para alternar para o ano ${yearNum}`;
+            if (yearNum === currentYear) {
+                th.classList.add('active-year-th');
+            } else {
+                th.classList.remove('active-year-th');
+            }
+
+            th.onclick = () => {
+                const btnYears = document.querySelectorAll('.btn-year');
+                btnYears.forEach(b => {
+                    if (b.getAttribute('data-year') === String(yearNum)) {
+                        b.click();
+                    }
+                });
+            };
+        }
+    });
+
     lucide.createIcons();
 }
 
