@@ -240,6 +240,7 @@ let rawSales = [];
 let analyzedSales = [];
 let activeSortColumn = 'id_nfe';
 let activeSortDirection = 'asc';
+let legalThesis = 'fisco'; // 'fisco' (Tese do Fisco - RC SEFAZ/SP 32.303/2025) ou 'contribuinte' (Tese do Contribuinte - PLP 16/2025)
 
 // ApexCharts instances
 let charts = {
@@ -256,6 +257,9 @@ const cbsSlider = document.getElementById('cbs-slider');
 const cbsVal = document.getElementById('cbs-val');
 const ibsSlider = document.getElementById('ibs-slider');
 const ibsVal = document.getElementById('ibs-val');
+
+const legalThesisSelect = document.getElementById('legal-thesis-select');
+const thesisBadge = document.getElementById('thesis-badge');
 
 // Year Selector State and DOM elements
 let currentYear = 2026;
@@ -278,6 +282,8 @@ const kpiTaxNew = document.getElementById('kpi-tax-new');
 const kpiTaxNewPct = document.getElementById('kpi-tax-new-pct');
 const kpiTaxDiff = document.getElementById('kpi-tax-diff');
 const kpiTaxDiffTrend = document.getElementById('kpi-tax-diff-trend');
+const kpiContingencyVal = document.getElementById('kpi-contingency-val');
+const kpiContingencyPct = document.getElementById('kpi-contingency-pct');
 
 // Table search and body
 const tableSearch = document.getElementById('table-search');
@@ -353,6 +359,18 @@ function initEventListeners() {
         // Refresh charts colors when theme switches
         updateCharts();
     });
+
+    // Legal Thesis Scenario Selector
+    if (legalThesisSelect) {
+        legalThesisSelect.addEventListener('change', (e) => {
+            legalThesis = e.target.value;
+            if (thesisBadge) {
+                thesisBadge.textContent = legalThesis === 'fisco' ? 'Tese do Fisco' : 'Tese Contribuinte';
+                thesisBadge.className = legalThesis === 'fisco' ? 'badge badge-warning' : 'badge badge-success';
+            }
+            recalculateAndRefresh();
+        });
+    }
 
     // Sliders
     cbsSlider.addEventListener('input', (e) => {
@@ -853,6 +871,13 @@ function recalculateAndRefresh() {
             }
         }
 
+        // Calculate nominal ICMS rate (default 18% if not inferrable)
+        let nominalIcmsRate = 0.18;
+        const vBasePiscofinsExIcms = sale.valor_total - (sale.pis_atual || 0) - (sale.cofins_atual || 0);
+        if (sale.icms_atual > 0 && vBasePiscofinsExIcms > 0) {
+            nominalIcmsRate = Math.min(0.35, Math.max(0.04, sale.icms_atual / vBasePiscofinsExIcms));
+        }
+
         // Calculate CBS & IBS values based on the year rules
         const cbsRate = yearRules.cbsRateFunc(cbsStd) * cbsFactor;
         const ibsRate = yearRules.ibsRateFunc(ibsStd) * ibsFactor;
@@ -860,14 +885,42 @@ function recalculateAndRefresh() {
         const baseValue = Math.max(0, sale.valor_total - taxCurrent);
         const cbsValCalculated = baseValue * cbsRate;
         const ibsValCalculated = baseValue * ibsRate;
+        const cbsIbsSum = cbsValCalculated + ibsValCalculated;
 
         // Calculate residual taxes for this year
         const tax_pis_res = (sale.pis_atual || 0) * yearRules.residualPisCofinsPct;
         const tax_cofins_res = (sale.cofins_atual || 0) * yearRules.residualPisCofinsPct;
         const isZFM = sale.uf_origem === 'AM' || sale.uf_destino === 'AM';
         const tax_ipi_res = (sale.ipi_atual || 0) * (isZFM ? 1.0 : yearRules.residualIpiPct);
-        const tax_icms_res = (sale.icms_atual || 0) * yearRules.residualIcmsIssPct;
         const tax_iss_res = (sale.iss_atual || 0) * yearRules.residualIcmsIssPct;
+
+        // ICMS calculation considering PIS/COFINS extinction and ICMS "por dentro" gross-up (MGK Method)
+        const effectiveIcmsRate = nominalIcmsRate * yearRules.residualIcmsIssPct;
+        let tax_icms_fisco = 0;
+        let tax_icms_contrib = 0;
+
+        if (effectiveIcmsRate > 0) {
+            if (yearRules.residualPisCofinsPct === 0) {
+                // Post 2027: PIS/COFINS extintos. Recálculo da base por dentro sobre a receita líquida alvo (baseValue)
+                // Tese do Fisco (RC SEFAZ/SP 32.303/2025): IBS e CBS integram a base do ICMS
+                const vProdFisco = (baseValue + effectiveIcmsRate * cbsIbsSum) / (1 - effectiveIcmsRate);
+                tax_icms_fisco = (vProdFisco + cbsIbsSum) * effectiveIcmsRate;
+
+                // Tese do Contribuinte (PLP 16/2025): IBS e CBS NÃO integram a base do ICMS
+                const vProdContrib = baseValue / (1 - effectiveIcmsRate);
+                tax_icms_contrib = vProdContrib * effectiveIcmsRate;
+            } else {
+                // 2025/2026: PIS/COFINS continuam vigentes
+                tax_icms_fisco = (sale.icms_atual || 0) * yearRules.residualIcmsIssPct;
+                tax_icms_contrib = (sale.icms_atual || 0) * yearRules.residualIcmsIssPct;
+            }
+        }
+
+        // Active ICMS value according to selected legal thesis
+        const tax_icms_res = (legalThesis === 'fisco') ? tax_icms_fisco : tax_icms_contrib;
+        
+        // Passivo / Contingência da controvérsia legal (diferença entre Fisco e Contribuinte)
+        const tax_contingency = tax_icms_fisco - tax_icms_contrib;
 
         // Apply transition scenario
         let taxNew;
@@ -889,6 +942,9 @@ function recalculateAndRefresh() {
             tax_cofins_res: tax_cofins_res,
             tax_ipi_res: tax_ipi_res,
             tax_icms_res: tax_icms_res,
+            tax_icms_fisco: tax_icms_fisco,
+            tax_icms_contrib: tax_icms_contrib,
+            tax_contingency: tax_contingency,
             tax_iss_res: tax_iss_res,
             tax_new: taxNew,
             tax_diff: taxDiff,
@@ -907,12 +963,14 @@ function updateKPIs() {
     let totalRevenue = 0;
     let totalTaxCurrent = 0;
     let totalTaxNew = 0;
+    let totalContingency = 0;
     let totalCount = analyzedSales.length;
 
     analyzedSales.forEach(sale => {
         totalRevenue += sale.valor_total;
         totalTaxCurrent += sale.tax_current;
         totalTaxNew += sale.tax_new;
+        totalContingency += sale.tax_contingency || 0;
     });
 
     const totalTaxDiff = totalTaxNew - totalTaxCurrent;
@@ -921,6 +979,7 @@ function updateKPIs() {
     
     // Calculate difference relative to current tax burden
     const taxDiffPct = totalTaxCurrent > 0 ? (totalTaxDiff / totalTaxCurrent) * 100 : 0;
+    const contingencyPctRevenue = totalRevenue > 0 ? (totalContingency / totalRevenue) * 100 : 0;
 
     // Set KPI text
     kpiRevenue.textContent = formatCurrency(totalRevenue);
@@ -938,6 +997,14 @@ function updateKPIs() {
     const trendEl = kpiTaxDiffTrend.querySelector('.kpi-trend');
     trendEl.textContent = `${(totalTaxDiff >= 0 ? '+' : '')}${taxDiffPct.toFixed(1)}%`;
     trendEl.className = 'kpi-trend ' + (totalTaxDiff > 0 ? 'positive' : totalTaxDiff < 0 ? 'negative' : '');
+
+    // Set Risk / Contingency KPI text
+    if (kpiContingencyVal) {
+        kpiContingencyVal.textContent = formatCurrency(totalContingency);
+    }
+    if (kpiContingencyPct) {
+        kpiContingencyPct.textContent = `Diferença ICMS: +${contingencyPctRevenue.toFixed(2)}% fat.`;
+    }
 }
 
 // Chart Renderings
@@ -1305,6 +1372,7 @@ function updateSingleSimulator() {
     
     const simCbs = valorLiquido * cbsRate;
     const simIbs = valorLiquido * ibsRate;
+    const simCbsIbsSum = simCbs + simIbs;
 
     // Calculate residual taxes for this year
     const pisCofinsRes = (pisVal + cofinsVal) * yearRules.residualPisCofinsPct;
@@ -1322,14 +1390,44 @@ function updateSingleSimulator() {
         }
     }
     const ipiRes = ipiVal * (isZFM ? 1.0 : yearRules.residualIpiPct);
-    const icmsIssRes = (icmsVal + issVal) * yearRules.residualIcmsIssPct;
+    const issRes = issVal * yearRules.residualIcmsIssPct;
+
+    // ICMS calculation considering PIS/COFINS extinction and ICMS "por dentro" gross-up (MGK Method)
+    let nominalIcmsRate = 0.18;
+    const vBasePiscofinsExIcms = totalVal - pisVal - cofinsVal;
+    if (icmsVal > 0 && vBasePiscofinsExIcms > 0) {
+        nominalIcmsRate = Math.min(0.35, Math.max(0.04, icmsVal / vBasePiscofinsExIcms));
+    }
+    const effectiveIcmsRate = nominalIcmsRate * yearRules.residualIcmsIssPct;
+
+    let simIcmsFisco = 0;
+    let simIcmsContrib = 0;
+
+    if (effectiveIcmsRate > 0) {
+        if (yearRules.residualPisCofinsPct === 0) {
+            // Post 2027: PIS/COFINS extintos. Recálculo da base por dentro sobre a receita líquida alvo (valorLiquido)
+            // Tese do Fisco (RC SEFAZ/SP 32.303/2025): IBS e CBS integram a base do ICMS
+            const vProdFisco = (valorLiquido + effectiveIcmsRate * simCbsIbsSum) / (1 - effectiveIcmsRate);
+            simIcmsFisco = (vProdFisco + simCbsIbsSum) * effectiveIcmsRate;
+
+            // Tese do Contribuinte (PLP 16/2025): IBS e CBS NÃO integram a base do ICMS
+            const vProdContrib = valorLiquido / (1 - effectiveIcmsRate);
+            simIcmsContrib = vProdContrib * effectiveIcmsRate;
+        } else {
+            simIcmsFisco = icmsVal * yearRules.residualIcmsIssPct;
+            simIcmsContrib = icmsVal * yearRules.residualIcmsIssPct;
+        }
+    }
+
+    const simIcmsRes = (legalThesis === 'fisco') ? simIcmsFisco : simIcmsContrib;
+    const simContingency = simIcmsFisco - simIcmsContrib;
 
     // Final tax burden for the year
     let newTax;
     if (yearRules.neutralized) {
         newTax = currentTax;
     } else {
-        newTax = simCbs + simIbs + pisCofinsRes + ipiRes + icmsIssRes;
+        newTax = simCbs + simIbs + pisCofinsRes + ipiRes + simIcmsRes + issRes;
     }
 
     const diff = newTax - currentTax;
@@ -1345,9 +1443,14 @@ function updateSingleSimulator() {
     const simCalcStepsEl = document.getElementById('sim-calc-steps');
     if (simCalcStepsEl) {
         let stepsHTML = `
-            <div style="font-weight: 600; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="calculator" style="width: 14px; height: 14px;"></i>
-                Memória de Cálculo (${currentYear})
+            <div style="font-weight: 600; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="calculator" style="width: 14px; height: 14px;"></i>
+                    Memória de Cálculo (${currentYear})
+                </span>
+                <span class="badge ${legalThesis === 'fisco' ? 'badge-warning' : 'badge-success'}" style="font-size: 10px;">
+                    ${legalThesis === 'fisco' ? 'Tese Fisco' : 'Tese Contribuinte'}
+                </span>
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary);">
                 <div style="display: flex; justify-content: space-between;">
@@ -1404,14 +1507,32 @@ function updateSingleSimulator() {
                 `;
                 stepNum++;
             }
-            if (icmsIssRes > 0) {
+            if (simIcmsRes > 0) {
+                const thesisNote = legalThesis === 'fisco' ? ' (com IBS/CBS na base)' : ' (sem IBS/CBS na base)';
                 stepsHTML += `
                     <div style="display: flex; justify-content: space-between;">
-                        <span>${stepNum}. (+) ICMS/ISS Residuais (${(yearRules.residualIcmsIssPct * 100).toFixed(0)}%):</span>
-                        <strong style="color: var(--text-primary);">+ ${formatCurrency(icmsIssRes)}</strong>
+                        <span>${stepNum}. (+) ICMS Residual (${(effectiveIcmsRate * 100).toFixed(1)}% por dentro)${thesisNote}:</span>
+                        <strong style="color: var(--text-primary);">+ ${formatCurrency(simIcmsRes)}</strong>
                     </div>
                 `;
                 stepNum++;
+            }
+            if (issRes > 0) {
+                stepsHTML += `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${stepNum}. (+) ISS Residual (${(yearRules.residualIcmsIssPct * 100).toFixed(0)}%):</span>
+                        <strong style="color: var(--text-primary);">+ ${formatCurrency(issRes)}</strong>
+                    </div>
+                `;
+                stepNum++;
+            }
+            if (simContingency > 0.01) {
+                stepsHTML += `
+                    <div style="display: flex; justify-content: space-between; margin-top: 4px; padding: 4px 8px; background: rgba(234, 179, 8, 0.1); border-radius: 4px; color: var(--warning);">
+                        <span>⚠️ Exposição Fiscal (Tese Fisco vs Contrib):</span>
+                        <strong>+ ${formatCurrency(simContingency)}</strong>
+                    </div>
+                `;
             }
         }
 
@@ -1612,10 +1733,14 @@ function exportSalesToExcel() {
         'PIS Residual (R$)': sale.tax_pis_res || 0,
         'COFINS Residual (R$)': sale.tax_cofins_res || 0,
         'ICMS Residual (R$)': sale.tax_icms_res || 0,
+        'ICMS Tese Fisco (R$)': sale.tax_icms_fisco || 0,
+        'ICMS Tese Contribuinte (R$)': sale.tax_icms_contrib || 0,
+        'Contingência/Risco Fiscal (R$)': sale.tax_contingency || 0,
         'ISS Residual (R$)': sale.tax_iss_res || 0,
         'IPI Residual (R$)': sale.tax_ipi_res || 0,
         'Carga Nova Total (R$)': sale.tax_new || 0,
         'Impacto Líquido (R$)': sale.tax_diff || 0,
+        'Cenário Jurídico Ativo': legalThesis === 'fisco' ? 'Tese Fisco (INCLUI IBS/CBS)' : 'Tese Contribuinte (EXCLUI IBS/CBS)',
         'Regra Aplicada': sale.status_regra
     }));
 

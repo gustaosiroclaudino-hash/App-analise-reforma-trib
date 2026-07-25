@@ -294,6 +294,21 @@
                             </button>
                         </div>
 
+                        <!-- Legal Thesis Scenario Selector (MGK Method) -->
+                        <div class="control-group" style="background: rgba(99, 102, 241, 0.05); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid rgba(99, 102, 241, 0.2);">
+                            <div class="control-header" style="margin-bottom: 6px;">
+                                <label for="legal-thesis-select" style="font-weight: 700; color: var(--primary); font-size: 13px;">Chave do Cenário Jurídico</label>
+                                <span class="badge badge-warning" id="thesis-badge" style="font-size: 10px;">Tese do Fisco</span>
+                            </div>
+                            <select id="legal-thesis-select" class="form-input" style="font-size: 12px; padding: 6px 10px; cursor: pointer;">
+                                <option value="fisco" selected>Tese do Fisco (INCLUI IBS/CBS na base do ICMS - SEFAZ/SP RC 32.303/2025)</option>
+                                <option value="contribuinte">Tese do Contribuinte (EXCLUI IBS/CBS da base do ICMS - PLP 16/2025)</option>
+                            </select>
+                            <p style="font-size: 11px; color: var(--text-secondary); margin-top: 6px; line-height: 1.3;">
+                                Controvérsia 2027+: define se IBS e CBS compõem a base de cálculo do ICMS.
+                            </p>
+                        </div>
+
                         <!-- CBS Slider -->
                         <div class="control-group">
                             <div class="control-header">
@@ -336,7 +351,7 @@
                     <div class="dash-main">
                         
                         <!-- KPIs -->
-                        <div class="grid kpi-grid">
+                        <div class="grid kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
                             
                             <div class="card kpi-card">
                                 <div class="kpi-title">Faturamento Analisado</div>
@@ -362,6 +377,12 @@
                                 <div id="kpi-tax-diff-trend" class="kpi-subtitle">
                                     <span class="kpi-trend">0.00%</span> da carga
                                 </div>
+                            </div>
+
+                            <div class="card kpi-card" id="kpi-contingency-card">
+                                <div class="kpi-title" title="Passivo ou contingência fiscal estimada se prevalecer a Tese do Fisco (SEFAZ/SP)">Risco Fiscal (Tese Fisco)</div>
+                                <div id="kpi-contingency-val" class="kpi-value" style="color: var(--warning);">R$ 0,00</div>
+                                <div id="kpi-contingency-pct" class="kpi-subtitle">Diferença de ICMS: +0.00%</div>
                             </div>
 
                         </div>
