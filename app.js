@@ -421,12 +421,12 @@ function initEventListeners() {
         e.preventDefault();
         uploadZone.classList.remove('dragover');
         if (e.dataTransfer.files.length > 0) {
-            handleFileUpload(e.dataTransfer.files[0]);
+            handleFileUpload(e.dataTransfer.files);
         }
     });
     csvFileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
-            handleFileUpload(e.target.files[0]);
+            handleFileUpload(e.target.files);
         }
     });
 
@@ -627,9 +627,50 @@ function loadFallbackSales() {
     recalculateAndRefresh();
 }
 
-function handleFileUpload(file) {
-    const fileName = file.name.toLowerCase();
-    if (fileName.endsWith('.csv')) {
+function handleFileUpload(fileInput) {
+    if (!fileInput) return;
+    const files = (fileInput instanceof FileList || Array.isArray(fileInput)) 
+        ? Array.from(fileInput) 
+        : [fileInput];
+
+    if (files.length === 0) return;
+
+    // Categorize files
+    const xmlFiles = files.filter(f => f.name.toLowerCase().endsWith('.xml'));
+    const csvFiles = files.filter(f => f.name.toLowerCase().endsWith('.csv'));
+    const excelFiles = files.filter(f => f.name.toLowerCase().endsWith('.xlsx') || f.name.toLowerCase().endsWith('.xls'));
+
+    if (xmlFiles.length > 0) {
+        setDatabaseStatus('warning', `Processando ${xmlFiles.length} arquivo(s) XML de NF-e...`);
+        const xmlPromises = xmlFiles.map(readXmlFile);
+        Promise.all(xmlPromises)
+            .then(results => {
+                let allItems = [];
+                results.forEach(res => {
+                    allItems = allItems.concat(res.items);
+                });
+
+                if (allItems.length > 0) {
+                    rawSales = allItems;
+                    saveSalesToCache();
+                    recalculateAndRefresh();
+                    if (xmlFiles.length === 1) {
+                        setDatabaseStatus('success', `Carregada NF-e (${xmlFiles[0].name}) com ${allItems.length} item(ns).`);
+                    } else {
+                        setDatabaseStatus('success', `Carregadas ${xmlFiles.length} NF-es em XML (${allItems.length} itens no total).`);
+                    }
+                } else {
+                    alert('Nenhum item válido encontrado no(s) arquivo(s) XML da NF-e.');
+                    setDatabaseStatus('warning', 'Sem itens no XML.');
+                }
+            })
+            .catch(err => {
+                console.error('Erro ao ler arquivos XML:', err);
+                alert('Falha ao processar o(s) arquivo(s) XML enviados.');
+                setDatabaseStatus('danger', 'Erro na leitura do XML.');
+            });
+    } else if (csvFiles.length > 0) {
+        const file = csvFiles[0];
         setDatabaseStatus('warning', 'Processando arquivo CSV...');
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -640,7 +681,8 @@ function handleFileUpload(file) {
             setDatabaseStatus('danger', 'Erro na leitura do arquivo enviado.');
         };
         reader.readAsText(file, 'UTF-8');
-    } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+    } else if (excelFiles.length > 0) {
+        const file = excelFiles[0];
         setDatabaseStatus('warning', 'Processando planilha Excel...');
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -648,11 +690,8 @@ function handleFileUpload(file) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 
-                // Get the first worksheet
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
-                
-                // Convert worksheet to JSON (array of objects)
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
                 
                 if (jsonData && jsonData.length > 0) {
@@ -674,8 +713,142 @@ function handleFileUpload(file) {
         };
         reader.readAsArrayBuffer(file);
     } else {
-        alert('Por favor, faça upload de um arquivo com extensão .csv, .xlsx ou .xls');
+        alert('Por favor, faça upload de um arquivo com extensão .xml, .csv, .xlsx ou .xls');
     }
+}
+
+function readXmlFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const items = parseNfeXmlText(e.target.result, file.name);
+                resolve({ fileName: file.name, items: items });
+            } catch (err) {
+                reject(err);
+            }
+        };
+        reader.onerror = function(err) {
+            reject(err);
+        };
+        reader.readAsText(file, 'UTF-8');
+    });
+}
+
+function parseNfeXmlText(xmlText, fileName) {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+    const parserError = xmlDoc.querySelector("parsererror");
+    if (parserError) {
+        console.error("Erro de parser no XML:", parserError.textContent);
+        return [];
+    }
+
+    const getTagVal = (container, tagName, defaultVal = '') => {
+        if (!container) return defaultVal;
+        const els = container.getElementsByTagName(tagName);
+        if (els && els.length > 0 && els[0].textContent !== null) {
+            return els[0].textContent.trim();
+        }
+        return defaultVal;
+    };
+
+    const ide = xmlDoc.getElementsByTagName('ide')[0];
+    const emit = xmlDoc.getElementsByTagName('emit')[0];
+    const dest = xmlDoc.getElementsByTagName('dest')[0];
+
+    const nNF = getTagVal(ide, 'nNF') || getTagVal(xmlDoc, 'chNFe') || '1';
+
+    let dhEmi = getTagVal(ide, 'dhEmi') || getTagVal(ide, 'dEmi') || '2026-07-19';
+    if (dhEmi.includes('T')) {
+        dhEmi = dhEmi.split('T')[0];
+    }
+
+    const ufOrigem = getTagVal(emit, 'UF', 'SP');
+    const ufDestino = getTagVal(dest, 'UF', 'SP');
+
+    let tipoCliente = "B2C";
+    if (dest) {
+        const cnpjDest = getTagVal(dest, 'CNPJ');
+        if (cnpjDest && cnpjDest.length > 0) {
+            tipoCliente = "B2B";
+        }
+    }
+
+    const detList = xmlDoc.getElementsByTagName('det');
+    const items = [];
+
+    for (let i = 0; i < detList.length; i++) {
+        const det = detList[i];
+        const prod = det.getElementsByTagName('prod')[0];
+        const imposto = det.getElementsByTagName('imposto')[0];
+
+        if (!prod) continue;
+
+        const xProd = getTagVal(prod, 'xProd', 'Produto NFe');
+        const ncmRaw = getTagVal(prod, 'NCM', '');
+        const cleanNcm = ncmRaw.replace(/\D/g, '');
+        const qCom = parseFloatSafe(getTagVal(prod, 'qCom', '1'), 1);
+        const vUnCom = parseFloatSafe(getTagVal(prod, 'vUnCom', '0'), 0);
+        let vProd = parseFloatSafe(getTagVal(prod, 'vProd', '0'), 0);
+        if (vProd === 0) {
+            vProd = qCom * vUnCom;
+        }
+
+        let icmsVal = 0;
+        let pisVal = 0;
+        let cofinsVal = 0;
+        let ipiVal = 0;
+        let issVal = 0;
+
+        if (imposto) {
+            const icmsGroup = imposto.getElementsByTagName('ICMS')[0];
+            if (icmsGroup) {
+                icmsVal = parseFloatSafe(getTagVal(icmsGroup, 'vICMS', '0'), 0);
+            }
+
+            const pisGroup = imposto.getElementsByTagName('PIS')[0];
+            if (pisGroup) {
+                pisVal = parseFloatSafe(getTagVal(pisGroup, 'vPIS', '0'), 0);
+            }
+
+            const cofinsGroup = imposto.getElementsByTagName('COFINS')[0];
+            if (cofinsGroup) {
+                cofinsVal = parseFloatSafe(getTagVal(cofinsGroup, 'vCOFINS', '0'), 0);
+            }
+
+            const ipiGroup = imposto.getElementsByTagName('IPI')[0];
+            if (ipiGroup) {
+                ipiVal = parseFloatSafe(getTagVal(ipiGroup, 'vIPI', '0'), 0);
+            }
+
+            const issGroup = imposto.getElementsByTagName('ISSQN')[0];
+            if (issGroup) {
+                issVal = parseFloatSafe(getTagVal(issGroup, 'vISSQN', '0') || getTagVal(issGroup, 'vISS', '0'), 0);
+            }
+        }
+
+        items.push({
+            id_nfe: `NF ${nNF}`,
+            data_emissao: dhEmi,
+            uf_origem: ufOrigem,
+            uf_destino: ufDestino,
+            ncm_codigo: cleanNcm || "85171300",
+            produto_nome: xProd,
+            quantidade: qCom,
+            valor_unitario: vUnCom,
+            valor_total: vProd,
+            tipo_cliente: tipoCliente,
+            pis_atual: pisVal,
+            cofins_atual: cofinsVal,
+            icms_atual: icmsVal,
+            iss_atual: issVal,
+            ipi_atual: ipiVal
+        });
+    }
+
+    return items;
 }
 
 function parseSalesCSV(csvText, silent = false) {
