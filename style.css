@@ -899,6 +899,8 @@ body.light-mode .btn-year.active {
 
 /* Wide Multi-Year Simulation Matrix Table */
 .sim-multiyear-card {
+    width: 100%;
+    grid-column: 1 / -1;
     padding: 20px 24px;
     border-radius: var(--border-radius);
     background: var(--bg-surface);
