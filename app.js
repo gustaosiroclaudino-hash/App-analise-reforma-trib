@@ -536,6 +536,41 @@ function initEventListeners() {
         ruleName.value = '';
         alert('Regra adicionada e aplicada ao Dashboard com sucesso!');
     });
+
+    // Simulator breakdown tab switcher
+    const btnSimTabSummary = document.getElementById('btn-sim-tab-summary');
+    const btnSimTabBreakdown = document.getElementById('btn-sim-tab-breakdown');
+    const btnSimTabTheses = document.getElementById('btn-sim-tab-theses');
+
+    const panelSummary = document.getElementById('sim-panel-summary');
+    const panelBreakdown = document.getElementById('sim-panel-breakdown');
+    const panelTheses = document.getElementById('sim-panel-theses');
+
+    function switchSimTab(tab) {
+        if (!panelSummary || !panelBreakdown || !panelTheses) return;
+        btnSimTabSummary.classList.remove('active');
+        btnSimTabBreakdown.classList.remove('active');
+        btnSimTabTheses.classList.remove('active');
+
+        panelSummary.style.display = 'none';
+        panelBreakdown.style.display = 'none';
+        panelTheses.style.display = 'none';
+
+        if (tab === 'summary') {
+            btnSimTabSummary.classList.add('active');
+            panelSummary.style.display = 'block';
+        } else if (tab === 'breakdown') {
+            btnSimTabBreakdown.classList.add('active');
+            panelBreakdown.style.display = 'block';
+        } else if (tab === 'theses') {
+            btnSimTabTheses.classList.add('active');
+            panelTheses.style.display = 'block';
+        }
+    }
+
+    if (btnSimTabSummary) btnSimTabSummary.addEventListener('click', () => switchSimTab('summary'));
+    if (btnSimTabBreakdown) btnSimTabBreakdown.addEventListener('click', () => switchSimTab('breakdown'));
+    if (btnSimTabTheses) btnSimTabTheses.addEventListener('click', () => switchSimTab('theses'));
 }
 
 // Load Rules from JSON & initial CSV sales
@@ -1623,17 +1658,54 @@ function updateSingleSimulator(saleOverride = null) {
     const diff = newTax - currentTax;
     const diffPct = currentTax > 0 ? (diff / currentTax) * 100 : 0;
 
-    // Update Simulator Card
+    // Update Simulator Card summary
     if (simTaxCurrentEl) simTaxCurrentEl.textContent = formatCurrency(currentTax);
     if (simTaxCbsEl) simTaxCbsEl.textContent = formatCurrency(simCbs);
     if (simTaxIbsEl) simTaxIbsEl.textContent = formatCurrency(simIbs);
     if (simTaxNewEl) simTaxNewEl.textContent = formatCurrency(newTax);
 
-    // Update step-by-step panel elements dynamically
+    // Update individual values tab panel
+    const elPisAtual = document.getElementById('sim-val-pis-atual');
+    const elCofinsAtual = document.getElementById('sim-val-cofins-atual');
+    const elIcmsAtual = document.getElementById('sim-val-icms-atual');
+    const elIssAtual = document.getElementById('sim-val-iss-atual');
+    const elIpiAtual = document.getElementById('sim-val-ipi-atual');
+
+    const elCbsNew = document.getElementById('sim-val-cbs-new');
+    const elIbsNew = document.getElementById('sim-val-ibs-new');
+    const elPisRes = document.getElementById('sim-val-pis-res');
+    const elCofinsRes = document.getElementById('sim-val-cofins-res');
+    const elIpiRes = document.getElementById('sim-val-ipi-res');
+    const elIssRes = document.getElementById('sim-val-iss-res');
+    const elIcmsRes = document.getElementById('sim-val-icms-res');
+
+    const elThesisFisco = document.getElementById('sim-val-thesis-fisco');
+    const elThesisContrib = document.getElementById('sim-val-thesis-contrib');
+    const elContingencyItem = document.getElementById('sim-val-contingency-item');
+
+    if (elPisAtual) elPisAtual.textContent = formatCurrency(pisVal);
+    if (elCofinsAtual) elCofinsAtual.textContent = formatCurrency(cofinsVal);
+    if (elIcmsAtual) elIcmsAtual.textContent = formatCurrency(icmsVal);
+    if (elIssAtual) elIssAtual.textContent = formatCurrency(issVal);
+    if (elIpiAtual) elIpiAtual.textContent = formatCurrency(ipiVal);
+
+    if (elCbsNew) elCbsNew.textContent = formatCurrency(simCbs);
+    if (elIbsNew) elIbsNew.textContent = formatCurrency(simIbs);
+    if (elPisRes) elPisRes.textContent = formatCurrency(pisVal * yearRules.residualPisCofinsPct);
+    if (elCofinsRes) elCofinsRes.textContent = formatCurrency(cofinsVal * yearRules.residualPisCofinsPct);
+    if (elIpiRes) elIpiRes.textContent = formatCurrency(ipiRes);
+    if (elIssRes) elIssRes.textContent = formatCurrency(issRes);
+    if (elIcmsRes) elIcmsRes.textContent = formatCurrency(simIcmsRes);
+
+    if (elThesisFisco) elThesisFisco.textContent = formatCurrency(simIcmsFisco);
+    if (elThesisContrib) elThesisContrib.textContent = formatCurrency(simIcmsContrib);
+    if (elContingencyItem) elContingencyItem.textContent = formatCurrency(simContingency);
+
+    // Update step-by-step panel elements dynamically with itemized values
     const simCalcStepsEl = document.getElementById('sim-calc-steps');
     if (simCalcStepsEl) {
         let stepsHTML = `
-            <div style="font-weight: 600; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-weight: 600; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
                 <span style="display: flex; align-items: center; gap: 6px;">
                     <i data-lucide="calculator" style="width: 14px; height: 14px;"></i>
                     Memória de Cálculo (${currentYear})
@@ -1642,26 +1714,33 @@ function updateSingleSimulator(saleOverride = null) {
                     ${legalThesis === 'fisco' ? 'Tese Fisco' : 'Tese Contribuinte'}
                 </span>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary);">
+            <div style="display: flex; flex-direction: column; gap: 4px; color: var(--text-secondary);">
                 <div style="display: flex; justify-content: space-between;">
                     <span>1. Valor Total do Item:</span>
                     <strong style="color: var(--text-primary);">${formatCurrency(totalVal)}</strong>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>2. (-) Carga Tributária Original:</span>
+                <div style="display: flex; justify-content: space-between; font-weight: 600; margin-top: 2px;">
+                    <span>2. (-) Carga Tributária Atual Descontada:</span>
                     <strong style="color: var(--warning);">- ${formatCurrency(currentTax)}</strong>
                 </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 6px; color: var(--text-primary);">
+                <div style="padding-left: 10px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; border-left: 2px solid rgba(234, 179, 8, 0.3); margin: 2px 0 4px 4px; color: var(--text-secondary);">
+                    <div style="display: flex; justify-content: space-between;"><span>• PIS:</span><span>${formatCurrency(pisVal)}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>• COFINS:</span><span>${formatCurrency(cofinsVal)}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>• ICMS:</span><span>${formatCurrency(icmsVal)}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>• ISS:</span><span>${formatCurrency(issVal)}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>• IPI:</span><span>${formatCurrency(ipiVal)}</span></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-bottom: 4px; color: var(--text-primary); font-weight: 600;">
                     <span>(=) Base de Cálculo Líquida:</span>
                     <strong>${formatCurrency(valorLiquido)}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                     <span>3. (+) CBS Projetada (${(cbsRate * 100).toFixed(1)}%):</span>
-                    <strong style="color: var(--text-primary);">+ ${formatCurrency(simCbs)}</strong>
+                    <strong style="color: var(--primary);">+ ${formatCurrency(simCbs)}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                     <span>4. (+) IBS Projetado (${(ibsRate * 100).toFixed(1)}%):</span>
-                    <strong style="color: var(--text-primary);">+ ${formatCurrency(simIbs)}</strong>
+                    <strong style="color: var(--primary);">+ ${formatCurrency(simIbs)}</strong>
                 </div>
         `;
 
@@ -1727,7 +1806,7 @@ function updateSingleSimulator(saleOverride = null) {
         }
 
         stepsHTML += `
-                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 6px; color: var(--text-primary); font-weight: 600;">
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 4px; margin-top: 4px; color: var(--text-primary); font-weight: 600;">
                     <span>(=) Carga Efetiva no Ano:</span>
                     <strong style="color: var(--text-primary);">${formatCurrency(newTax)}</strong>
                 </div>

@@ -150,62 +150,140 @@
 
                     <!-- Result Display -->
                     <div class="card sim-result-card">
-                        <div class="sim-result-header">
-                            <span class="title">Impacto da Reforma</span>
+                        <div class="sim-result-header" style="margin-bottom: 12px; padding-bottom: 12px;">
+                            <span class="title">Impacto da Reforma no Item</span>
                             <div id="sim-impact-val" class="sim-impact-value neutral">R$ 0,00</div>
-                            <span id="sim-impact-pct" style="font-size: 14px; font-weight: 500;">(0.00%)</span>
+                            <span id="sim-impact-pct" style="font-size: 13px; font-weight: 500;">(0.00%)</span>
                         </div>
-                        <div>
+
+                        <!-- Tab View Switcher -->
+                        <div class="sim-tabs" style="display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                            <button id="btn-sim-tab-summary" class="btn btn-secondary active" style="flex: 1; font-size: 11px; padding: 6px 8px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <i data-lucide="layers" style="width: 13px; height: 13px;"></i> Resumo
+                            </button>
+                            <button id="btn-sim-tab-breakdown" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 6px 8px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <i data-lucide="list-tree" style="width: 13px; height: 13px;"></i> Todos os Valores
+                            </button>
+                            <button id="btn-sim-tab-theses" class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 6px 8px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <i data-lucide="scale" style="width: 13px; height: 13px;"></i> Teses ICMS
+                            </button>
+                        </div>
+
+                        <!-- Panel 1: Resumo -->
+                        <div id="sim-panel-summary">
                             <div class="sim-detail-row">
-                                <span>Carga Tributária Atual (PIS/COFINS/ICMS/ISS/IPI)</span>
+                                <span>Carga Tributária Atual Total</span>
                                 <span id="sim-tax-current">R$ 0,00</span>
                             </div>
                             <div class="sim-detail-row">
-                                <span>CBS Projetada</span>
+                                <span>CBS Projetada (Federal)</span>
                                 <span id="sim-tax-cbs">R$ 0,00</span>
                             </div>
                             <div class="sim-detail-row">
-                                <span>IBS Projetado</span>
+                                <span>IBS Projetado (Est/Mun)</span>
                                 <span id="sim-tax-ibs">R$ 0,00</span>
                             </div>
-                            <div class="sim-detail-row" style="border-bottom: none; font-weight: 700; color: var(--text-primary)">
-                                <span>Nova Carga Total (IBS + CBS)</span>
+                            <div class="sim-detail-row" style="border-bottom: none; font-weight: 700; color: var(--text-primary);">
+                                <span>Nova Carga Total Efetiva</span>
                                 <span id="sim-tax-new">R$ 0,00</span>
+                            </div>
+                        </div>
+
+                        <!-- Panel 2: Todos os Valores Discriminados -->
+                        <div id="sim-panel-breakdown" style="display: none;">
+                            <div style="font-weight: 700; font-size: 11px; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                Sistema Tributário Vigente (Atual)
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 12px; margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">PIS:</span>
+                                    <strong id="sim-val-pis-atual">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">COFINS:</span>
+                                    <strong id="sim-val-cofins-atual">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">ICMS:</span>
+                                    <strong id="sim-val-icms-atual">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">ISS:</span>
+                                    <strong id="sim-val-iss-atual">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; grid-column: span 2;">
+                                    <span style="color: var(--text-secondary);">IPI:</span>
+                                    <strong id="sim-val-ipi-atual">R$ 0,00</strong>
+                                </div>
+                            </div>
+
+                            <div style="font-weight: 700; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                Novo Sistema Proposto (Transição no Ano)
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; background: rgba(99, 102, 241, 0.04); padding: 10px; border-radius: 6px; border: 1px solid rgba(99, 102, 241, 0.15); font-size: 12px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">CBS:</span>
+                                    <strong id="sim-val-cbs-new" style="color: var(--primary);">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">IBS:</span>
+                                    <strong id="sim-val-ibs-new" style="color: var(--primary);">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">PIS Res.:</span>
+                                    <strong id="sim-val-pis-res">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">COFINS Res.:</span>
+                                    <strong id="sim-val-cofins-res">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">IPI Res.:</span>
+                                    <strong id="sim-val-ipi-res">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">ISS Res.:</span>
+                                    <strong id="sim-val-iss-res">R$ 0,00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; grid-column: span 2; border-top: 1px dashed var(--border-color); padding-top: 4px; margin-top: 2px;">
+                                    <span style="color: var(--text-secondary);">ICMS Residual (Tese Ativa):</span>
+                                    <strong id="sim-val-icms-res" style="color: var(--warning);">R$ 0,00</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel 3: Teses ICMS -->
+                        <div id="sim-panel-theses" style="display: none;">
+                            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+                                <div style="padding: 10px; background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 6px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span style="font-weight: 600; color: var(--warning);">1. Tese Fisco (Com IBS/CBS):</span>
+                                        <strong id="sim-val-thesis-fisco">R$ 0,00</strong>
+                                    </div>
+                                    <p style="font-size: 11px; color: var(--text-muted); margin: 0;">RC SEFAZ/SP 32.303/2025: O IBS/CBS integra a receita bruta e a base do ICMS por dentro.</p>
+                                </div>
+
+                                <div style="padding: 10px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 6px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span style="font-weight: 600; color: var(--success);">2. Tese Contribuinte (Sem IBS/CBS):</span>
+                                        <strong id="sim-val-thesis-contrib">R$ 0,00</strong>
+                                    </div>
+                                    <p style="font-size: 11px; color: var(--text-muted); margin: 0;">PLP 16/2025: Exclui o IBS e CBS da base de cálculo por dentro do ICMS.</p>
+                                </div>
+
+                                <div style="padding: 10px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <span style="font-weight: 700; color: var(--danger);">Exposição / Risco Fiscal do Item:</span>
+                                        <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Diferença entre Tese Fisco e Contribuinte</p>
+                                    </div>
+                                    <strong id="sim-val-contingency-item" style="font-size: 13px; color: var(--danger);">R$ 0,00</strong>
+                                </div>
                             </div>
                         </div>
                         
                         <!-- Memória de Cálculo (Passo a Passo) -->
-                        <div class="calculation-steps" id="sim-calc-steps" style="margin-top: 16px; padding: 16px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 8px; font-size: 13px;">
-                            <div style="font-weight: 600; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-                                <i data-lucide="calculator" style="width: 14px; height: 14px;"></i>
-                                Memória de Cálculo (Passo a Passo)
-                            </div>
-                            <div style="display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary);">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>1. Valor Total do Item:</span>
-                                    <strong id="step-total-val" style="color: var(--text-primary);">R$ 0,00</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>2. (-) Carga Atual Extinta:</span>
-                                    <strong id="step-tax-current" style="color: var(--warning);">- R$ 0,00</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; margin-bottom: 6px; color: var(--text-primary);">
-                                    <span>(=) Base de Cálculo Líquida:</span>
-                                    <strong id="step-net-val">R$ 0,00</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>3. (+) CBS Projetada (<span id="step-cbs-rate">0%</span>):</span>
-                                    <strong id="step-cbs-val" style="color: var(--text-primary);">+ R$ 0,00</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>4. (+) IBS Projetado (<span id="step-ibs-rate">0%</span>):</span>
-                                    <strong id="step-ibs-val" style="color: var(--text-primary);">+ R$ 0,00</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 6px; color: var(--text-primary); font-weight: 600;">
-                                    <span>(=) Nova Carga (3 + 4):</span>
-                                    <strong id="step-new-tax" style="color: var(--text-primary);">R$ 0,00</strong>
-                                </div>
-                            </div>
+                        <div class="calculation-steps" id="sim-calc-steps" style="margin-top: 14px; padding: 14px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 8px; font-size: 12px;">
+                            <!-- Filled dynamically by JS -->
                         </div>
                     </div>
 
