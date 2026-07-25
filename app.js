@@ -241,6 +241,7 @@ let analyzedSales = [];
 let activeSortColumn = 'id_nfe';
 let activeSortDirection = 'asc';
 let legalThesis = 'fisco'; // 'fisco' (Tese do Fisco - RC SEFAZ/SP 32.303/2025) ou 'contribuinte' (Tese do Contribuinte - PLP 16/2025)
+let activeSimulatedSale = null;
 
 // ApexCharts instances
 let charts = {
@@ -1466,11 +1467,12 @@ function renderTable() {
         const tr = document.createElement('tr');
         const diffSymbol = sale.tax_diff > 0.05 ? '+' : '';
         const diffClass = sale.tax_diff > 0.05 ? 'kpi-trend positive' : sale.tax_diff < -0.05 ? 'kpi-trend negative' : '';
+        const saleIndex = analyzedSales.indexOf(sale);
 
         tr.innerHTML = `
             <td>#${sale.id_nfe}</td>
             <td style="text-align: center;">
-                <button class="btn-table-action" onclick="simulateRow(${sale.id_nfe})" title="Carregar no Simulador">
+                <button class="btn-table-action" onclick="simulateRow(${saleIndex})" title="Carregar no Simulador">
                     <i data-lucide="play"></i>
                 </button>
             </td>
@@ -1490,7 +1492,7 @@ function renderTable() {
     lucide.createIcons();
 }
 
-function updateSingleSimulator() {
+function updateSingleSimulator(saleOverride = null) {
     const name = simProductName.value;
     const ncm = simNcm.value;
     const totalVal = parseFloat(simValue.value) || 0;
@@ -1504,7 +1506,22 @@ function updateSingleSimulator() {
     let pisVal = 0, cofinsVal = 0, icmsVal = 0, issVal = 0, ipiVal = 0;
     let foundMatch = false;
 
-    if (analyzedSales && analyzedSales.length > 0) {
+    let targetSale = saleOverride;
+    if (!targetSale && activeSimulatedSale) {
+        if (activeSimulatedSale.produto_nome === name && activeSimulatedSale.ncm_codigo === ncm) {
+            targetSale = activeSimulatedSale;
+        }
+    }
+
+    if (targetSale) {
+        const scale = targetSale.valor_total > 0 ? (totalVal / targetSale.valor_total) : 1;
+        pisVal = (targetSale.pis_atual || 0) * scale;
+        cofinsVal = (targetSale.cofins_atual || 0) * scale;
+        icmsVal = (targetSale.icms_atual || 0) * scale;
+        issVal = (targetSale.iss_atual || 0) * scale;
+        ipiVal = (targetSale.ipi_atual || 0) * scale;
+        foundMatch = true;
+    } else if (analyzedSales && analyzedSales.length > 0) {
         const cleanNcm = String(ncm || "").replace(/\D/g, "");
         const match = analyzedSales.find(s => 
             (cleanNcm && s.ncm_codigo === cleanNcm) || 
@@ -1837,15 +1854,18 @@ function parseFloatSafe(val, defaultVal) {
 }
 
 // Dynamic row simulator trigger
-function simulateRow(idNfe) {
-    const sale = analyzedSales.find(s => s.id_nfe === idNfe);
+function simulateRow(indexOrId) {
+    let sale = null;
+    if (typeof indexOrId === 'number' && indexOrId >= 0 && indexOrId < analyzedSales.length) {
+        sale = analyzedSales[indexOrId];
+    } else if (typeof indexOrId === 'string' && !isNaN(parseInt(indexOrId, 10)) && analyzedSales[parseInt(indexOrId, 10)]) {
+        sale = analyzedSales[parseInt(indexOrId, 10)];
+    } else {
+        sale = analyzedSales.find(s => String(s.id_nfe) === String(indexOrId));
+    }
     if (!sale) return;
 
-    // Smooth scroll to the simulator
-    const simSection = document.getElementById('simulador-rapido');
-    if (simSection) {
-        simSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    activeSimulatedSale = sale;
 
     // Fill in simulator fields
     simProductName.value = sale.produto_nome;
@@ -1860,8 +1880,14 @@ function simulateRow(idNfe) {
         simRuleType.value = 'padrao';
     }
 
+    // Smooth scroll to the simulator
+    const simSection = document.getElementById('simulador-rapido');
+    if (simSection) {
+        simSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
     // Calculate
-    updateSingleSimulator();
+    updateSingleSimulator(sale);
 
     // Highlight visual feedback
     const resultCard = document.querySelector('.sim-result-card');
