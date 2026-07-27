@@ -361,17 +361,18 @@ function initEventListeners() {
         updateCharts();
     });
 
-    // Legal Thesis Scenario Selector
-    if (legalThesisSelect) {
-        legalThesisSelect.addEventListener('change', (e) => {
-            legalThesis = e.target.value;
-            if (thesisBadge) {
-                thesisBadge.textContent = legalThesis === 'fisco' ? 'Tese do Fisco' : 'Tese Contribuinte';
-                thesisBadge.className = legalThesis === 'fisco' ? 'badge badge-warning' : 'badge badge-success';
-            }
-            recalculateAndRefresh();
-        });
-    }
+    // Legal Thesis Scenario Selector (Sync across Sidebar, Item Simulator, and Data Table)
+    const thesisSelectIds = ['legal-thesis-select', 'sim-legal-thesis-select', 'table-legal-thesis-select'];
+    thesisSelectIds.forEach(id => {
+        const selectEl = document.getElementById(id);
+        if (selectEl) {
+            selectEl.addEventListener('change', (e) => {
+                legalThesis = e.target.value;
+                syncLegalThesisSelectors();
+                recalculateAndRefresh();
+            });
+        }
+    });
 
     // Sliders
     cbsSlider.addEventListener('input', (e) => {
@@ -1135,8 +1136,25 @@ function matchRule(ncm, productName) {
     return null;
 }
 
+function syncLegalThesisSelectors() {
+    const thesisSelectIds = ['legal-thesis-select', 'sim-legal-thesis-select', 'table-legal-thesis-select'];
+    thesisSelectIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.value !== legalThesis) {
+            el.value = legalThesis;
+        }
+    });
+
+    const badges = document.querySelectorAll('#thesis-badge, .sim-thesis-badge');
+    badges.forEach(b => {
+        b.textContent = legalThesis === 'fisco' ? 'Tese do Fisco' : 'Tese Contribuinte';
+        b.className = legalThesis === 'fisco' ? 'badge badge-warning' : 'badge badge-success';
+    });
+}
+
 // Calculation Engine
 function recalculateAndRefresh() {
+    syncLegalThesisSelectors();
     const cbsStd = parseFloat(cbsSlider.value) / 100;
     const ibsStd = parseFloat(ibsSlider.value) / 100;
     const yearRules = YEAR_TRANSITION_RULES[currentYear];
