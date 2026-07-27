@@ -1752,109 +1752,150 @@ function updateSingleSimulator(saleOverride = null) {
     const diffPct = currentTax > 0 ? (diff / currentTax) * 100 : 0;
 
     // Update Simulator Card summary
+    const summaryCardYearEl = document.getElementById('summary-card-year');
+    if (summaryCardYearEl) summaryCardYearEl.textContent = currentYear;
+
     if (simTaxCurrentEl) simTaxCurrentEl.textContent = formatCurrency(currentTax);
     if (simTaxCbsEl) simTaxCbsEl.textContent = formatCurrency(simCbs);
     if (simTaxIbsEl) simTaxIbsEl.textContent = formatCurrency(simIbs);
     if (simTaxNewEl) simTaxNewEl.textContent = formatCurrency(newTax);
 
-    // Update individual values tab panel
-    const elPisAtual = document.getElementById('sim-val-pis-atual');
-    const elCofinsAtual = document.getElementById('sim-val-cofins-atual');
-    const elIcmsAtual = document.getElementById('sim-val-icms-atual');
-    const elIssAtual = document.getElementById('sim-val-iss-atual');
-    const elIpiAtual = document.getElementById('sim-val-ipi-atual');
+    // Dynamic Pill Tags for System Comparison
+    const pillsCurrentEl = document.getElementById('sim-pills-current');
+    if (pillsCurrentEl) {
+        let currentPillsHTML = '';
+        if (pisVal > 0) currentPillsHTML += `<span class="tax-pill warning">PIS: ${formatCurrency(pisVal)}</span>`;
+        if (cofinsVal > 0) currentPillsHTML += `<span class="tax-pill warning">COFINS: ${formatCurrency(cofinsVal)}</span>`;
+        if (icmsVal > 0) currentPillsHTML += `<span class="tax-pill warning">ICMS: ${formatCurrency(icmsVal)}</span>`;
+        if (issVal > 0) currentPillsHTML += `<span class="tax-pill warning">ISS: ${formatCurrency(issVal)}</span>`;
+        if (ipiVal > 0) currentPillsHTML += `<span class="tax-pill warning">IPI: ${formatCurrency(ipiVal)}</span>`;
+        if (!currentPillsHTML) currentPillsHTML = `<span class="tax-pill muted">Isento / Sem retenção</span>`;
+        pillsCurrentEl.innerHTML = currentPillsHTML;
+    }
 
-    const elCbsNew = document.getElementById('sim-val-cbs-new');
-    const elIbsNew = document.getElementById('sim-val-ibs-new');
-    const elPisRes = document.getElementById('sim-val-pis-res');
-    const elCofinsRes = document.getElementById('sim-val-cofins-res');
-    const elIpiRes = document.getElementById('sim-val-ipi-res');
-    const elIssRes = document.getElementById('sim-val-iss-res');
-    const elIcmsRes = document.getElementById('sim-val-icms-res');
+    const pillsNewEl = document.getElementById('sim-pills-new');
+    if (pillsNewEl) {
+        let newPillsHTML = '';
+        if (simCbs > 0) newPillsHTML += `<span class="tax-pill primary">CBS (${(cbsRate * 100).toFixed(1)}%): ${formatCurrency(simCbs)}</span>`;
+        if (simIbs > 0) newPillsHTML += `<span class="tax-pill accent">IBS (${(ibsRate * 100).toFixed(1)}%): ${formatCurrency(simIbs)}</span>`;
+        if (pisCofinsRes > 0) newPillsHTML += `<span class="tax-pill warning">PIS/COF Res.: ${formatCurrency(pisCofinsRes)}</span>`;
+        if (simIcmsRes > 0) newPillsHTML += `<span class="tax-pill warning">ICMS Res.: ${formatCurrency(simIcmsRes)}</span>`;
+        if (issRes > 0) newPillsHTML += `<span class="tax-pill warning">ISS Res.: ${formatCurrency(issRes)}</span>`;
+        if (ipiRes > 0) newPillsHTML += `<span class="tax-pill warning">IPI Res.: ${formatCurrency(ipiRes)}</span>`;
+        pillsNewEl.innerHTML = newPillsHTML;
+    }
 
     const elThesisFisco = document.getElementById('sim-val-thesis-fisco');
     const elThesisContrib = document.getElementById('sim-val-thesis-contrib');
     const elContingencyItem = document.getElementById('sim-val-contingency-item');
-
-    if (elPisAtual) elPisAtual.textContent = formatCurrency(pisVal);
-    if (elCofinsAtual) elCofinsAtual.textContent = formatCurrency(cofinsVal);
-    if (elIcmsAtual) elIcmsAtual.textContent = formatCurrency(icmsVal);
-    if (elIssAtual) elIssAtual.textContent = formatCurrency(issVal);
-    if (elIpiAtual) elIpiAtual.textContent = formatCurrency(ipiVal);
-
-    if (elCbsNew) elCbsNew.textContent = formatCurrency(simCbs);
-    if (elIbsNew) elIbsNew.textContent = formatCurrency(simIbs);
-    if (elPisRes) elPisRes.textContent = formatCurrency(pisVal * yearRules.residualPisCofinsPct);
-    if (elCofinsRes) elCofinsRes.textContent = formatCurrency(cofinsVal * yearRules.residualPisCofinsPct);
-    if (elIpiRes) elIpiRes.textContent = formatCurrency(ipiRes);
-    if (elIssRes) elIssRes.textContent = formatCurrency(issRes);
-    if (elIcmsRes) elIcmsRes.textContent = formatCurrency(simIcmsRes);
+    const elThesisDiff = document.getElementById('sim-val-thesis-diff');
 
     if (elThesisFisco) elThesisFisco.textContent = formatCurrency(simIcmsFisco);
     if (elThesisContrib) elThesisContrib.textContent = formatCurrency(simIcmsContrib);
     if (elContingencyItem) elContingencyItem.textContent = formatCurrency(simContingency);
+    if (elThesisDiff) elThesisDiff.textContent = formatCurrency(simContingency);
 
-    // Update step-by-step panel elements dynamically with itemized values
+    // Update Waterfall Stepper (Memória de Cálculo Passo a Passo)
     const simCalcStepsEl = document.getElementById('sim-calc-steps');
     if (simCalcStepsEl) {
         let stepsHTML = `
-            <div style="font-weight: 600; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                <span style="display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="calculator" style="width: 14px; height: 14px;"></i>
+            <div class="stepper-header">
+                <div class="stepper-header-title">
+                    <i data-lucide="calculator" style="width: 15px; height: 15px; color: var(--primary);"></i>
                     Memória de Cálculo (${currentYear})
-                </span>
-                <span class="badge ${legalThesis === 'fisco' ? 'badge-warning' : 'badge-success'}" style="font-size: 10px;">
+                </div>
+                <span class="badge ${legalThesis === 'fisco' ? 'badge-warning' : 'badge-success'}" style="font-size: 10px; font-weight: 700;">
                     ${legalThesis === 'fisco' ? 'Tese Fisco' : 'Tese Contribuinte'}
                 </span>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 4px; color: var(--text-secondary);">
-                <div style="display: flex; justify-content: space-between;">
-                    <span>1. Valor Total do Item:</span>
-                    <strong style="color: var(--text-primary);">${formatCurrency(totalVal)}</strong>
+            
+            <!-- Step 1: Valor Bruto -->
+            <div class="stepper-row">
+                <div class="stepper-label">
+                    <span class="stepper-num">1</span>
+                    <span>Valor Total Bruto do Item</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-weight: 600; margin-top: 2px;">
-                    <span>2. (-) Carga Tributária Atual Descontada:</span>
-                    <strong style="color: var(--warning);">- ${formatCurrency(currentTax)}</strong>
+                <div class="stepper-val" style="color: var(--text-primary);">${formatCurrency(totalVal)}</div>
+            </div>
+
+            <!-- Step 2: (-) Impostos Atuais Descontados -->
+            <div class="stepper-row highlight-subtle" style="flex-direction: column; align-items: stretch; gap: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div class="stepper-label">
+                        <span class="stepper-num" style="background: rgba(234, 179, 8, 0.2); color: #facc15;">2</span>
+                        <span style="font-weight: 600; color: var(--warning);">(-) Carga Tributária Atual Descontada</span>
+                    </div>
+                    <div class="stepper-val" style="color: var(--warning);">- ${formatCurrency(currentTax)}</div>
                 </div>
-                <div style="padding-left: 10px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; border-left: 2px solid rgba(234, 179, 8, 0.3); margin: 2px 0 4px 4px; color: var(--text-secondary);">
-                    <div style="display: flex; justify-content: space-between;"><span>• PIS:</span><span>${formatCurrency(pisVal)}</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>• COFINS:</span><span>${formatCurrency(cofinsVal)}</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>• ICMS:</span><span>${formatCurrency(icmsVal)}</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>• ISS:</span><span>${formatCurrency(issVal)}</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>• IPI:</span><span>${formatCurrency(ipiVal)}</span></div>
+                <details style="margin-left: 24px; font-size: 11px;">
+                    <summary class="stepper-details-summary">
+                        <span>Ver detalhamento dos impostos atuais</span>
+                    </summary>
+                    <div style="margin-top: 6px; padding: 6px 10px; background: rgba(0, 0, 0, 0.25); border-radius: 6px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 3px;">
+                        <div style="display: flex; justify-content: space-between;"><span>• PIS:</span><span style="white-space: nowrap; font-weight: 600;">${formatCurrency(pisVal)}</span></div>
+                        <div style="display: flex; justify-content: space-between;"><span>• COFINS:</span><span style="white-space: nowrap; font-weight: 600;">${formatCurrency(cofinsVal)}</span></div>
+                        <div style="display: flex; justify-content: space-between;"><span>• ICMS:</span><span style="white-space: nowrap; font-weight: 600;">${formatCurrency(icmsVal)}</span></div>
+                        <div style="display: flex; justify-content: space-between;"><span>• ISS:</span><span style="white-space: nowrap; font-weight: 600;">${formatCurrency(issVal)}</span></div>
+                        <div style="display: flex; justify-content: space-between;"><span>• IPI:</span><span style="white-space: nowrap; font-weight: 600;">${formatCurrency(ipiVal)}</span></div>
+                    </div>
+                </details>
+            </div>
+
+            <!-- Step 3: Base Líquida -->
+            <div class="stepper-row" style="border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 4px;">
+                <div class="stepper-label">
+                    <span class="stepper-num">3</span>
+                    <span style="font-weight: 600; color: var(--text-primary);">(=) Base de Cálculo Líquida do Produto</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-bottom: 4px; color: var(--text-primary); font-weight: 600;">
-                    <span>(=) Base de Cálculo Líquida:</span>
-                    <strong>${formatCurrency(valorLiquido)}</strong>
+                <div class="stepper-val" style="color: var(--text-primary); font-size: 13px;">${formatCurrency(valorLiquido)}</div>
+            </div>
+
+            <!-- Step 4: (+) CBS -->
+            <div class="stepper-row">
+                <div class="stepper-label">
+                    <span class="stepper-num" style="background: rgba(99, 102, 241, 0.2); color: #818cf8;">4</span>
+                    <span>(+) CBS Projetada (${(cbsRate * 100).toFixed(1)}%)</span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>3. (+) CBS Projetada (${(cbsRate * 100).toFixed(1)}%):</span>
-                    <strong style="color: var(--primary);">+ ${formatCurrency(simCbs)}</strong>
+                <div class="stepper-val" style="color: var(--primary);">+ ${formatCurrency(simCbs)}</div>
+            </div>
+
+            <!-- Step 5: (+) IBS -->
+            <div class="stepper-row">
+                <div class="stepper-label">
+                    <span class="stepper-num" style="background: rgba(168, 85, 247, 0.2); color: #c084fc;">5</span>
+                    <span>(+) IBS Projetado (${(ibsRate * 100).toFixed(1)}%)</span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>4. (+) IBS Projetado (${(ibsRate * 100).toFixed(1)}%):</span>
-                    <strong style="color: var(--primary);">+ ${formatCurrency(simIbs)}</strong>
-                </div>
+                <div class="stepper-val" style="color: var(--accent);">+ ${formatCurrency(simIbs)}</div>
+            </div>
         `;
 
         if (yearRules.neutralized) {
             stepsHTML += `
-                <div style="display: flex; justify-content: space-between;">
-                    <span>5. (-) Compensação de Teste (neutralizado):</span>
-                    <strong style="color: var(--success);">- ${formatCurrency(simCbs + simIbs)}</strong>
+                <div class="stepper-row">
+                    <div class="stepper-label">
+                        <span class="stepper-num" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">6</span>
+                        <span>(-) Compensação de Teste (Neutralizado)</span>
+                    </div>
+                    <div class="stepper-val" style="color: var(--success);">- ${formatCurrency(simCbs + simIbs)}</div>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>6. (+) Impostos Vigentes no Ano (100%):</span>
-                    <strong style="color: var(--text-primary);">+ ${formatCurrency(currentTax)}</strong>
+                <div class="stepper-row">
+                    <div class="stepper-label">
+                        <span class="stepper-num">7</span>
+                        <span>(+) Impostos Vigentes em Teste (100%)</span>
+                    </div>
+                    <div class="stepper-val" style="color: var(--text-primary);">+ ${formatCurrency(currentTax)}</div>
                 </div>
             `;
         } else {
-            let stepNum = 5;
+            let stepNum = 6;
             if (pisCofinsRes > 0) {
                 stepsHTML += `
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>${stepNum}. (+) PIS/COFINS Residuais (${(yearRules.residualPisCofinsPct * 100).toFixed(0)}%):</span>
-                        <strong style="color: var(--text-primary);">+ ${formatCurrency(pisCofinsRes)}</strong>
+                    <div class="stepper-row">
+                        <div class="stepper-label">
+                            <span class="stepper-num">${stepNum}</span>
+                            <span>(+) PIS/COFINS Residuais (${(yearRules.residualPisCofinsPct * 100).toFixed(0)}%)</span>
+                        </div>
+                        <div class="stepper-val" style="color: var(--text-primary);">+ ${formatCurrency(pisCofinsRes)}</div>
                     </div>
                 `;
                 stepNum++;
@@ -1862,9 +1903,12 @@ function updateSingleSimulator(saleOverride = null) {
             if (ipiRes > 0) {
                 const isZFMText = isZFM ? " (Preservado ZFM)" : ` (${(yearRules.residualIpiPct * 100).toFixed(0)}%)`;
                 stepsHTML += `
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>${stepNum}. (+) IPI Residual${isZFMText}:</span>
-                        <strong style="color: var(--text-primary);">+ ${formatCurrency(ipiRes)}</strong>
+                    <div class="stepper-row">
+                        <div class="stepper-label">
+                            <span class="stepper-num">${stepNum}</span>
+                            <span>(+) IPI Residual${isZFMText}</span>
+                        </div>
+                        <div class="stepper-val" style="color: var(--text-primary);">+ ${formatCurrency(ipiRes)}</div>
                     </div>
                 `;
                 stepNum++;
@@ -1872,40 +1916,42 @@ function updateSingleSimulator(saleOverride = null) {
             if (simIcmsRes > 0) {
                 const thesisNote = legalThesis === 'fisco' ? ' (com IBS/CBS na base)' : ' (sem IBS/CBS na base)';
                 stepsHTML += `
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>${stepNum}. (+) ICMS Residual (${(effectiveIcmsRate * 100).toFixed(1)}% por dentro)${thesisNote}:</span>
-                        <strong style="color: var(--text-primary);">+ ${formatCurrency(simIcmsRes)}</strong>
+                    <div class="stepper-row">
+                        <div class="stepper-label">
+                            <span class="stepper-num" style="background: rgba(234, 179, 8, 0.2); color: #facc15;">${stepNum}</span>
+                            <span>(+) ICMS Residual (${(effectiveIcmsRate * 100).toFixed(1)}% por dentro)${thesisNote}</span>
+                        </div>
+                        <div class="stepper-val" style="color: var(--warning);">+ ${formatCurrency(simIcmsRes)}</div>
                     </div>
                 `;
                 stepNum++;
             }
             if (issRes > 0) {
                 stepsHTML += `
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>${stepNum}. (+) ISS Residual (${(yearRules.residualIcmsIssPct * 100).toFixed(0)}%):</span>
-                        <strong style="color: var(--text-primary);">+ ${formatCurrency(issRes)}</strong>
+                    <div class="stepper-row">
+                        <div class="stepper-label">
+                            <span class="stepper-num">${stepNum}</span>
+                            <span>(+) ISS Residual (${(yearRules.residualIcmsIssPct * 100).toFixed(0)}%)</span>
+                        </div>
+                        <div class="stepper-val" style="color: var(--text-primary);">+ ${formatCurrency(issRes)}</div>
                     </div>
                 `;
                 stepNum++;
             }
-            if (simContingency > 0.01) {
-                stepsHTML += `
-                    <div style="display: flex; justify-content: space-between; margin-top: 4px; padding: 4px 8px; background: rgba(234, 179, 8, 0.1); border-radius: 4px; color: var(--warning);">
-                        <span>⚠️ Exposição Fiscal (Tese Fisco vs Contrib):</span>
-                        <strong>+ ${formatCurrency(simContingency)}</strong>
-                    </div>
-                `;
-            }
         }
 
         stepsHTML += `
-                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 4px; margin-top: 4px; color: var(--text-primary); font-weight: 600;">
-                    <span>(=) Carga Efetiva no Ano:</span>
-                    <strong style="color: var(--text-primary);">${formatCurrency(newTax)}</strong>
+            <!-- Final Step: Carga Efetiva -->
+            <div class="stepper-row highlight-total">
+                <div class="stepper-label">
+                    <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: var(--primary);"></i>
+                    <span style="font-weight: 800; font-size: 13px; color: var(--text-primary);">(=) Carga Efetiva no Ano (${currentYear})</span>
                 </div>
+                <div class="stepper-val" style="font-size: 15px; font-weight: 800; color: var(--primary);">${formatCurrency(newTax)}</div>
             </div>
         `;
         simCalcStepsEl.innerHTML = stepsHTML;
+        if (window.lucide) window.lucide.createIcons();
     }
 
     simImpactVal.textContent = (diff >= 0 ? '+' : '') + formatCurrency(diff);

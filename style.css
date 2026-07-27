@@ -1080,5 +1080,197 @@ body.light-mode .btn-multiyear-mode.active {
     color: #ffffff;
 }
 
+/* ==========================================================================
+   Reformulação Visual: Pills Tributárias & Waterfall Stepper
+   ========================================================================== */
+
+.tax-pill {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.tax-pill.warning {
+    background: rgba(234, 179, 8, 0.12);
+    color: #facc15;
+    border: 1px solid rgba(234, 179, 8, 0.25);
+}
+
+.tax-pill.primary {
+    background: rgba(99, 102, 241, 0.12);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.tax-pill.accent {
+    background: rgba(168, 85, 247, 0.12);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.25);
+}
+
+.tax-pill.muted {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+}
+
+.tax-pill.success {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.tax-pill.danger {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* Waterfall Stepper Component */
+.waterfall-stepper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(99, 102, 241, 0.03);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.stepper-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 4px;
+}
+
+.stepper-header-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stepper-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+    font-size: 12px;
+}
+
+.stepper-row:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.stepper-row.highlight-subtle {
+    background: rgba(234, 179, 8, 0.05);
+    border-left: 3px solid var(--warning);
+}
+
+.stepper-row.highlight-total {
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 10px 12px;
+    margin-top: 4px;
+    border-radius: 8px;
+}
+
+.stepper-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.stepper-num {
+    font-weight: 800;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    line-height: 1.2;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+.stepper-val {
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.stepper-details-box {
+    margin-top: 4px;
+    margin-left: 24px;
+    padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 11px;
+}
+
+.stepper-details-summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--warning);
+    user-select: none;
+    outline: none;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.stepper-details-summary:hover {
+    color: #fde047;
+}
+
+/* Light mode adjustments */
+body.light-mode .waterfall-stepper {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+body.light-mode .tax-pill.warning {
+    background: #fef3c7;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+body.light-mode .tax-pill.primary {
+    background: #e0e7ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+body.light-mode .tax-pill.accent {
+    background: #f3e8ff;
+    color: #7e22ce;
+    border-color: #e9d5ff;
+}
+
+body.light-mode .stepper-row.highlight-total {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+
 
 
