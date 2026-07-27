@@ -361,16 +361,18 @@ function initEventListeners() {
         updateCharts();
     });
 
-    // Legal Thesis Scenario Selector (Sync across Sidebar, Item Simulator, and Data Table)
-    const thesisSelectIds = ['legal-thesis-select', 'sim-legal-thesis-select', 'table-legal-thesis-select'];
+    // Legal Thesis Scenario Selector (Sync across Sidebar, Item Simulator, Multiyear Matrix, and Data Table)
+    const thesisSelectIds = ['legal-thesis-select', 'sim-legal-thesis-select', 'multiyear-legal-thesis-select', 'table-legal-thesis-select'];
     thesisSelectIds.forEach(id => {
         const selectEl = document.getElementById(id);
         if (selectEl) {
-            selectEl.addEventListener('change', (e) => {
+            const handler = (e) => {
                 legalThesis = e.target.value;
                 syncLegalThesisSelectors();
                 recalculateAndRefresh();
-            });
+            };
+            selectEl.addEventListener('change', handler);
+            selectEl.addEventListener('input', handler);
         }
     });
 
@@ -480,9 +482,13 @@ function initEventListeners() {
     });
 
     // Single item simulator
-    const simInputs = [simProductName, simNcm, simValue, simRuleType];
+    const simLegalThesisSel = document.getElementById('sim-legal-thesis-select');
+    const simInputs = [simProductName, simNcm, simValue, simRuleType, simLegalThesisSel];
     simInputs.forEach(input => {
-        input.addEventListener('input', updateSingleSimulator);
+        if (input) {
+            input.addEventListener('input', updateSingleSimulator);
+            input.addEventListener('change', updateSingleSimulator);
+        }
     });
 
     // NCM auto-detection on simulator
@@ -1137,7 +1143,7 @@ function matchRule(ncm, productName) {
 }
 
 function syncLegalThesisSelectors() {
-    const thesisSelectIds = ['legal-thesis-select', 'sim-legal-thesis-select', 'table-legal-thesis-select'];
+    const thesisSelectIds = ['legal-thesis-select', 'sim-legal-thesis-select', 'multiyear-legal-thesis-select', 'table-legal-thesis-select'];
     thesisSelectIds.forEach(id => {
         const el = document.getElementById(id);
         if (el && el.value !== legalThesis) {

@@ -884,13 +884,13 @@ body.light-mode .btn-year.active {
 @media (min-width: 1200px) {
     .quick-simulator .sim-grid {
         grid-template-columns: 1.1fr 0.95fr 0.95fr;
-        align-items: stretch;
+        align-items: start;
     }
 }
 @media (max-width: 1199px) and (min-width: 993px) {
     .quick-simulator .sim-grid {
         grid-template-columns: 1fr 1fr;
-        align-items: stretch;
+        align-items: start;
     }
     .sim-changes-card {
         grid-column: 1 / -1;

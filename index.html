@@ -163,10 +163,10 @@
 
                     <!-- Result Display -->
                     <div class="card sim-result-card">
-                        <div class="sim-result-header" style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                        <div class="sim-result-header" style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                             <div>
-                                <span class="title" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Impacto da Reforma no Item</span>
-                                <h3 style="font-size: 16px; font-weight: 700; margin-top: 2px; color: var(--text-primary);">Análise Comparativa & Métricas</h3>
+                                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 2px;">Impacto da Reforma no Item</div>
+                                <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0;">Análise Comparativa & Métricas</h3>
                             </div>
                             <div style="text-align: right;">
                                 <div id="sim-impact-val" class="sim-impact-value neutral" style="font-size: 20px; font-weight: 800; white-space: nowrap;">R$ 0,00</div>
@@ -317,7 +317,7 @@
                 <div class="card sim-multiyear-card" id="sim-multiyear-container" style="margin-top: 24px; width: 100%;">
                     <!-- Multiyear View Control Bar -->
                     <div class="multiyear-top-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                             <span style="font-size: 13px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
                                 <i data-lucide="layers" style="width: 16px; height: 16px; color: var(--primary);"></i>
                                 Visão da Simulação:
@@ -332,12 +332,22 @@
                             </div>
                         </div>
 
-                        <!-- Dropdown to select NF-e when mode is 'nfe' -->
-                        <div id="multiyear-nfe-selector-container" style="display: none; align-items: center; gap: 8px;">
-                            <label for="multiyear-nfe-select" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Selecione a NF-e:</label>
-                            <select id="multiyear-nfe-select" class="form-input" style="padding: 4px 10px; font-size: 12px; min-width: 260px; max-width: 380px; cursor: pointer;">
-                                <option value="consolidado">Todas as Notas Fiscais (Consolidado)</option>
-                            </select>
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.08); padding: 4px 10px; border-radius: var(--border-radius-sm); border: 1px solid rgba(99, 102, 241, 0.2);">
+                                <label for="multiyear-legal-thesis-select" style="font-size: 12px; font-weight: 700; color: var(--primary); white-space: nowrap;">Cenário Jurídico:</label>
+                                <select id="multiyear-legal-thesis-select" class="form-input" style="font-size: 12px; padding: 4px 8px; cursor: pointer; background: transparent; border: none; font-weight: 600; color: var(--text-primary);">
+                                    <option value="fisco" selected style="background: var(--bg-main); color: var(--text-primary);">Tese Fisco (Incide IBS/CBS na base ICMS)</option>
+                                    <option value="contribuinte" style="background: var(--bg-main); color: var(--text-primary);">Tese Contribuinte (Exclui IBS/CBS da base)</option>
+                                </select>
+                            </div>
+
+                            <!-- Dropdown to select NF-e when mode is 'nfe' -->
+                            <div id="multiyear-nfe-selector-container" style="display: none; align-items: center; gap: 8px;">
+                                <label for="multiyear-nfe-select" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Selecione a NF-e:</label>
+                                <select id="multiyear-nfe-select" class="form-input" style="padding: 4px 10px; font-size: 12px; min-width: 260px; max-width: 380px; cursor: pointer;">
+                                    <option value="consolidado">Todas as Notas Fiscais (Consolidado)</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
