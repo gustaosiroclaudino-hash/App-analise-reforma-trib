@@ -2735,3 +2735,36 @@ function exportSalesToExcel() {
         alert('Ocorreu um erro ao gerar o arquivo Excel para download.');
     }
 }
+
+// Automatic Screen Viewport Detector for Responsive Adaptation (Laptops vs TVs vs Ultrawide)
+function initScreenDetector() {
+    function updateScreenClasses() {
+        const width = window.innerWidth;
+        const root = document.documentElement;
+        
+        root.classList.remove('screen-sm', 'screen-md', 'screen-lg', 'screen-xl', 'screen-ultrawide', 'screen-tv');
+        
+        if (width >= 2200) {
+            root.classList.add('screen-tv');
+        } else if (width >= 1760) {
+            root.classList.add('screen-ultrawide');
+        } else if (width >= 1440) {
+            root.classList.add('screen-xl');
+        } else if (width >= 992) {
+            root.classList.add('screen-lg');
+        } else if (width >= 768) {
+            root.classList.add('screen-md');
+        } else {
+            root.classList.add('screen-sm');
+        }
+    }
+    
+    updateScreenClasses();
+    window.addEventListener('resize', updateScreenClasses);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initScreenDetector);
+} else {
+    initScreenDetector();
+}
