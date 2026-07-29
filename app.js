@@ -291,8 +291,8 @@ const tableSearch = document.getElementById('table-search');
 const tableBody = document.getElementById('sales-table-body');
 const tableHeaders = document.querySelectorAll('#sales-table th[data-sort]');
 
-// JSON display
-const jsonViewer = document.getElementById('json-viewer');
+// JSON display & Parameter Tables
+const jsonViewer = document.getElementById('rules-viewer') || document.getElementById('json-viewer');
 
 // Simulator elements
 const simProductName = document.getElementById('sim-product-name');
@@ -360,6 +360,15 @@ function initEventListeners() {
         // Refresh charts colors when theme switches
         updateCharts();
     });
+
+    // Mobile Menu toggle
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const navLinks = document.getElementById('nav-links');
+    if (mobileMenuToggle && navLinks) {
+        mobileMenuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+        });
+    }
 
     // Legal Thesis Scenario Selector (Sync across Sidebar, Item Simulator, Multiyear Matrix, and Data Table)
     const thesisSelectIds = ['legal-thesis-select', 'sim-legal-thesis-select', 'multiyear-legal-thesis-select', 'table-legal-thesis-select'];
@@ -1116,9 +1125,20 @@ function clearSalesCache() {
     }
 }
 
-function setDatabaseStatus(type, message) {
+function setDatabaseStatus(type, message, isUserData = false) {
     statusDot.className = 'status-indicator ' + type;
     statusText.textContent = message;
+
+    const dbSourceBadge = document.getElementById('db-source-badge');
+    if (dbSourceBadge) {
+        if (isUserData || (rawSales && rawSales.length > 0 && type === 'success')) {
+            dbSourceBadge.className = 'badge badge-success';
+            dbSourceBadge.textContent = 'Dados do Usuário';
+        } else {
+            dbSourceBadge.className = 'badge badge-demo';
+            dbSourceBadge.textContent = 'Demonstração';
+        }
+    }
 }
 
 // Rules matching logic by NCM or product keyword matching
@@ -1319,10 +1339,33 @@ function updateKPIs() {
 
     kpiTaxDiff.textContent = (totalTaxDiff >= 0 ? '+' : '') + formatCurrency(totalTaxDiff);
     
-    // Style the diff card trend
-    const trendEl = kpiTaxDiffTrend.querySelector('.kpi-trend');
-    trendEl.textContent = `${(totalTaxDiff >= 0 ? '+' : '')}${taxDiffPct.toFixed(1)}%`;
-    trendEl.className = 'kpi-trend ' + (totalTaxDiff > 0 ? 'positive' : totalTaxDiff < 0 ? 'negative' : '');
+    // Style the diff card trend with arrows and semantic colors
+    const trendArrow = document.getElementById('kpi-trend-arrow');
+    const impactIcon = document.getElementById('kpi-impact-icon');
+    
+    if (totalTaxDiff > 0) {
+        kpiTaxDiff.className = 'kpi-value kpi-val-red';
+        if (trendArrow) {
+            trendArrow.className = 'kpi-badge-trend up';
+            trendArrow.innerHTML = `↑ +${taxDiffPct.toFixed(1)}%`;
+        }
+        if (impactIcon) impactIcon.setAttribute('data-lucide', 'trending-up');
+    } else if (totalTaxDiff < 0) {
+        kpiTaxDiff.className = 'kpi-value kpi-val-green';
+        if (trendArrow) {
+            trendArrow.className = 'kpi-badge-trend down';
+            trendArrow.innerHTML = `↓ ${taxDiffPct.toFixed(1)}%`;
+        }
+        if (impactIcon) impactIcon.setAttribute('data-lucide', 'trending-down');
+    } else {
+        kpiTaxDiff.className = 'kpi-value kpi-val-primary';
+        if (trendArrow) {
+            trendArrow.className = 'kpi-badge-trend';
+            trendArrow.innerHTML = `0.0%`;
+        }
+        if (impactIcon) impactIcon.setAttribute('data-lucide', 'minus');
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 
     // Set Risk / Contingency KPI text
     if (kpiContingencyVal) {
@@ -1774,6 +1817,45 @@ function updateSingleSimulator(saleOverride = null) {
 
     const diff = newTax - currentTax;
     const diffPct = currentTax > 0 ? (diff / currentTax) * 100 : 0;
+
+    // Render side-by-side bar comparison container
+    const simBarComparison = document.getElementById('sim-bar-comparison');
+    if (simBarComparison) {
+        if (totalVal > 0) {
+            simBarComparison.style.display = 'block';
+            const maxTax = Math.max(currentTax, newTax, 1);
+            const pctCurr = Math.min(100, Math.max(4, (currentTax / maxTax) * 100));
+            const pctNew = Math.min(100, Math.max(4, (newTax / maxTax) * 100));
+            const sign = diff >= 0 ? '+' : '';
+            
+            simBarComparison.innerHTML = `
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>COMPARAÇÃO VISUAL: ATUAL vs NOVO SISTEMA (${currentYear})</span>
+                    <span class="badge ${diff > 0 ? 'badge-danger' : (diff < 0 ? 'badge-success' : 'badge-primary')}">${sign}${diffPct.toFixed(1)}%</span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 2px;">
+                        <span>Carga Tributária Atual</span>
+                        <span style="font-weight: 700;">${formatCurrency(currentTax)}</span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill-current" style="width: ${pctCurr}%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 2px;">
+                        <span>Carga Tributária Nova (${currentYear})</span>
+                        <span style="font-weight: 700;">${formatCurrency(newTax)}</span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill-new" style="width: ${pctNew}%;"></div>
+                    </div>
+                </div>
+            `;
+        } else {
+            simBarComparison.style.display = 'none';
+        }
+    }
 
     // Update Simulator Card summary
     const summaryCardYearEl = document.getElementById('summary-card-year');
@@ -2398,9 +2480,121 @@ function updateMultiyearMatrix(name, ncm, totalVal, ruleTypeSelect, targetSale =
     lucide.createIcons();
 }
 
-// Format regras_aliquotas.json display
+// Format regras_aliquotas.json display as a parameter table
 function updateRulesDisplay() {
-    jsonViewer.textContent = JSON.stringify(systemRules, null, 2);
+    const rulesViewer = document.getElementById('rules-viewer') || document.getElementById('json-viewer');
+    if (!rulesViewer) return;
+
+    if (!systemRules || !systemRules.regras_especiais) {
+        rulesViewer.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">Carregando parâmetros...</p>`;
+        return;
+    }
+
+    const std = systemRules.aliquotas_padrao || { cbs: 0.088, ibs: 0.177, total: 0.265 };
+    const stdCbsPct = (std.cbs * 100).toFixed(1);
+    const stdIbsPct = (std.ibs * 100).toFixed(1);
+    const stdTotalPct = (std.total * 100).toFixed(1);
+
+    let html = `
+        <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 100px; padding: 10px; background: rgba(99, 102, 241, 0.08); border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.2); text-align: center;">
+                <div style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">CBS Padrão</div>
+                <div style="font-size: 16px; font-weight: 800; color: var(--primary);">${stdCbsPct}%</div>
+            </div>
+            <div style="flex: 1; min-width: 100px; padding: 10px; background: rgba(6, 182, 212, 0.08); border-radius: 8px; border: 1px solid rgba(6, 182, 212, 0.2); text-align: center;">
+                <div style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">IBS Padrão</div>
+                <div style="font-size: 16px; font-weight: 800; color: var(--secondary);">${stdIbsPct}%</div>
+            </div>
+            <div style="flex: 1; min-width: 100px; padding: 10px; background: rgba(168, 85, 247, 0.08); border-radius: 8px; border: 1px solid rgba(168, 85, 247, 0.2); text-align: center;">
+                <div style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Total Referência</div>
+                <div style="font-size: 16px; font-weight: 800; color: var(--accent);">${stdTotalPct}%</div>
+            </div>
+        </div>
+
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th>NCM Target</th>
+                    <th>Produto / Categoria</th>
+                    <th>Tipo de Regra</th>
+                    <th>Redução</th>
+                    <th>Descrição Legal</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    systemRules.regras_especiais.forEach(r => {
+        let badgeClass = 'badge-primary';
+        let ruleNameDisplay = 'Alíquota Cheia';
+        if (r.tipo_regra === 'isento') {
+            badgeClass = 'badge-success';
+            ruleNameDisplay = 'Isento (0%)';
+        } else if (r.tipo_regra === 'reducao_60') {
+            badgeClass = 'badge-warning';
+            ruleNameDisplay = 'Redução 60%';
+        } else if (r.tipo_regra === 'reducao_30') {
+            badgeClass = 'badge-warning';
+            ruleNameDisplay = 'Redução 30%';
+        }
+
+        const redPct = r.fator_reducao ? `${((1 - r.fator_reducao) * 100).toFixed(0)}%` : '0%';
+
+        html += `
+            <tr>
+                <td style="font-family: monospace; font-weight: 700; color: var(--primary);">${r.ncm_codigo || '-'}</td>
+                <td style="font-weight: 600; color: var(--text-primary);">${r.produto_nome || '-'}</td>
+                <td><span class="badge ${badgeClass}">${ruleNameDisplay}</span></td>
+                <td style="font-weight: 700;">${redPct}</td>
+                <td style="font-size: 11px; color: var(--text-secondary);">${r.descricao || '-'}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    rulesViewer.innerHTML = html;
+}
+
+// Format mapeamento_colunas.json display as a parameter table
+function updateMappingsDisplay() {
+    const mappingsViewer = document.getElementById('mappings-viewer');
+    if (!mappingsViewer) return;
+
+    const mappings = columnMappings || DEFAULT_MAPPINGS;
+
+    let html = `
+        <table class="param-table">
+            <thead>
+                <tr>
+                    <th style="width: 130px;">Campo Interno</th>
+                    <th>Variantes Reconhecidas (CSV/Excel/XML)</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    Object.keys(mappings).forEach(key => {
+        const variants = mappings[key] || [];
+        const pillsHTML = variants.map(v => `<span class="mapping-pill">${v}</span>`).join(' ');
+
+        html += `
+            <tr>
+                <td style="font-weight: 700; font-family: monospace; color: var(--text-primary);">${key}</td>
+                <td>${pillsHTML}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    mappingsViewer.innerHTML = html;
 }
 
 // Helpers

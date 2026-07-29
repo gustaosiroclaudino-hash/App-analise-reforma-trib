@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise da Reforma Tributária - IBS & CBS</title>
-    <meta name="description" content="Simule o impacto da reforma tributária brasileira nas notas fiscais de sua empresa em tempo real. Veja as projeções do IBS e CBS.">
+    <title>TaxReform.AI - Simulador de Impacto da Reforma Tributária (IBS & CBS)</title>
+    <meta name="description" content="Simule o impacto da reforma tributária brasileira nas notas fiscais de sua empresa em tempo real (2026-2033). Veja projeções de IBS, CBS e teses de ICMS.">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,15 +13,15 @@
     <header id="header">
         <div class="container nav-container">
             <a href="#" class="logo">
-                <i data-lucide="calculator"></i>
-                TaxReform.AI
+                <span class="logo-icon-badge"><i data-lucide="scale"></i></span>
+                TaxReform<span class="logo-dot">.AI</span>
             </a>
-            <ul class="nav-links">
+            <ul class="nav-links" id="nav-links">
                 <li><a href="#inicio" class="active">Início</a></li>
                 <li><a href="#diferenciais">Diferenciais</a></li>
                 <li><a href="#simulador-rapido">Simulador Rápido</a></li>
                 <li><a href="#dashboard">Dashboard</a></li>
-                <li><a href="#parametros">Regras</a></li>
+                <li><a href="#parametros">Regras & Alíquotas</a></li>
             </ul>
             <div class="header-actions">
                 <button id="theme-toggle" class="theme-toggle" title="Alternar tema">
@@ -31,6 +31,9 @@
                     <i data-lucide="bar-chart-3"></i>
                     Simular NFe
                 </a>
+                <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Abrir Menu">
+                    <i data-lucide="menu"></i>
+                </button>
             </div>
         </div>
     </header>
@@ -43,20 +46,64 @@
             <div class="glow-bg glow-top-right"></div>
             <div class="glow-bg glow-bottom-left"></div>
             <div class="container">
-                <div class="badge-intro">
-                    <i data-lucide="sparkles"></i>
-                    Simulador Inteligente PEC 45/2019
-                </div>
-                <h1>Descomplique o Impacto da <span>Reforma Tributária</span> na sua Empresa</h1>
-                <p>Monitore, recalcule e compare instantaneamente a transição da carga tributária atual (PIS, COFINS, ICMS, ISS e IPI) para o novo modelo de IBS e CBS sobre suas notas fiscais eletrônicas.</p>
-                <div class="hero-cta">
-                    <a href="#dashboard" class="btn btn-primary btn-lg">
-                        <i data-lucide="upload"></i>
-                        Carregar Minhas NFes
-                    </a>
-                    <a href="#simulador-rapido" class="btn btn-secondary btn-lg">
-                        Simulação Rápida
-                    </a>
+                <div class="hero-grid">
+                    <div class="hero-content">
+                        <div class="badge-intro">
+                            <i data-lucide="shield-check"></i>
+                            Baseado na EC 132/2023 & LC 214/2025
+                        </div>
+                        <h1>Descomplique o Impacto da <span>Reforma Tributária</span> na sua Empresa</h1>
+                        <p>Monitore, recalcule e compare instantaneamente a transição da carga tributária atual (PIS, COFINS, ICMS, ISS e IPI) para o novo modelo de IBS e CBS sobre suas notas fiscais eletrônicas.</p>
+                        <div class="hero-cta">
+                            <a href="#dashboard" class="btn btn-primary btn-lg">
+                                <i data-lucide="upload-cloud"></i>
+                                Carregar Minhas NFes
+                            </a>
+                            <a href="#simulador-rapido" class="btn btn-outline btn-lg">
+                                <i data-lucide="calculator"></i>
+                                Simulação Rápida
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Right Column Visual Preview Widget -->
+                    <div class="hero-visual">
+                        <div class="hero-widget-card">
+                            <div class="hero-widget-header">
+                                <div class="hero-widget-title">
+                                    <i data-lucide="activity" style="color: var(--primary); width: 16px; height: 16px;"></i>
+                                    Projeção da Transição (2026 - 2033)
+                                </div>
+                                <span class="badge badge-success">EC 132/2023</span>
+                            </div>
+                            
+                            <div class="hero-widget-metrics">
+                                <div class="hero-mini-box">
+                                    <div class="lbl">CBS (Federal)</div>
+                                    <div class="val" style="color: var(--warning);">8.8%</div>
+                                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Substitui PIS/COFINS</div>
+                                </div>
+                                <div class="hero-mini-box">
+                                    <div class="lbl">IBS (Estadual/Mun.)</div>
+                                    <div class="val" style="color: var(--secondary);">17.7%</div>
+                                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Substitui ICMS/ISS</div>
+                                </div>
+                            </div>
+
+                            <div style="padding: 12px; background: rgba(99, 102, 241, 0.06); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 10px; font-size: 12px;">
+                                <div style="display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 6px;">
+                                    <span>Cronograma Gradual</span>
+                                    <span style="color: var(--primary);">Ano 2026 (Teste 1.0%)</span>
+                                </div>
+                                <div style="display: flex; gap: 4px;">
+                                    <span class="tax-pill primary">2026 Teste</span>
+                                    <span class="tax-pill warning">2027 CBS</span>
+                                    <span class="tax-pill accent">2029-32 Transição</span>
+                                    <span class="tax-pill success">2033 Pleno</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -71,27 +118,42 @@
                 <div class="grid features-grid">
                     
                     <div class="card feature-card fade-in">
-                        <div class="feature-icon">
-                            <i data-lucide="file-spreadsheet"></i>
+                        <div>
+                            <div class="feature-icon">
+                                <i data-lucide="file-spreadsheet"></i>
+                            </div>
+                            <h3>Leitura Dinâmica de Notas Fiscais</h3>
+                            <p>Arraste e solte arquivos XML de NFe ou relatórios CSV/Excel. O analisador processa a base em segundos, gerando relatórios consolidados.</p>
                         </div>
-                        <h3>Leitura Dinâmica de Notas Fiscais</h3>
-                        <p>Arraste e solte arquivos CSV de vendas. O analisador processa a base de dados em segundos, gerando relatórios completos e consolidados.</p>
+                        <div>
+                            <span class="feature-micro-badge"><i data-lucide="clock"></i> Reduza de 3h para 3min a análise de 500 notas</span>
+                        </div>
                     </div>
 
                     <div class="card feature-card fade-in">
-                        <div class="feature-icon">
-                            <i data-lucide="sliders"></i>
+                        <div>
+                            <div class="feature-icon">
+                                <i data-lucide="sliders"></i>
+                            </div>
+                            <h3>Simulação Dinâmica de Alíquotas</h3>
+                            <p>Ajuste as porcentagens do IBS e CBS padrão ou navegue na linha do tempo da transição (2026-2033) para prever o faturamento real futuro.</p>
                         </div>
-                        <h3>Simulação Dinâmica de Alíquotas</h3>
-                        <p>Ajuste as porcentagens do IBS e CBS padrão ou o estágio do período de transição usando controles deslizantes para prever o faturamento real futuro.</p>
+                        <div>
+                            <span class="feature-micro-badge"><i data-lucide="trending-up"></i> Projeção detalhada ano a ano de 2026 a 2033</span>
+                        </div>
                     </div>
 
                     <div class="card feature-card fade-in">
-                        <div class="feature-icon">
-                            <i data-lucide="shield-check"></i>
+                        <div>
+                            <div class="feature-icon">
+                                <i data-lucide="shield-check"></i>
+                            </div>
+                            <h3>Validação Automática por NCM</h3>
+                            <p>O algoritmo identifica automaticamente códigos NCM de isenção integral da Cesta Básica Nacional ou alíquota reduzida em 60% (Educação, Saúde, etc.).</p>
                         </div>
-                        <h3>Validação Automática por NCM</h3>
-                        <p>O algoritmo identifica automaticamente os códigos NCM de isenção integral da Cesta Básica ou alíquota reduzida em 60% (Educação, Saúde, etc.).</p>
+                        <div>
+                            <span class="feature-micro-badge"><i data-lucide="zap"></i> Detecção de Cesta Básica (0%) e Saúde (-60%)</span>
+                        </div>
                     </div>
 
                 </div>
@@ -111,44 +173,54 @@
                     <div class="card sim-form-container">
                         <!-- Simulator Year Timeline -->
                         <div class="form-group" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
-                            <label style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="calendar"></i>
-                                Ano de Simulação: <span id="sim-selected-year" style="color: var(--accent); font-weight: 800;">2026</span>
+                            <label style="font-weight: 700; color: var(--primary);">
+                                <span><i data-lucide="calendar" style="width: 15px; height: 15px; vertical-align: middle; margin-right: 4px;"></i> Ano de Simulação:</span>
+                                <span id="sim-selected-year" style="color: var(--accent); font-weight: 800; font-size: 16px;">2026</span>
                             </label>
                             <div class="year-selector-timeline" style="margin-top: 10px;">
-                                <button class="btn-year active" data-year="2026">26</button>
-                                <button class="btn-year" data-year="2027">27</button>
-                                <button class="btn-year" data-year="2028">28</button>
-                                <button class="btn-year" data-year="2029">29</button>
-                                <button class="btn-year" data-year="2030">30</button>
-                                <button class="btn-year" data-year="2031">31</button>
-                                <button class="btn-year" data-year="2032">32</button>
-                                <button class="btn-year" data-year="2033">33</button>
+                                <button class="btn-year active" data-year="2026">2026</button>
+                                <button class="btn-year" data-year="2027">2027</button>
+                                <button class="btn-year" data-year="2028">2028</button>
+                                <button class="btn-year" data-year="2029">2029</button>
+                                <button class="btn-year" data-year="2030">2030</button>
+                                <button class="btn-year" data-year="2031">2031</button>
+                                <button class="btn-year" data-year="2032">2032</button>
+                                <button class="btn-year" data-year="2033">2033</button>
                             </div>
                         </div>
+
                         <div class="form-group">
                             <label for="sim-product-name">Nome do Produto / Serviço</label>
                             <input type="text" id="sim-product-name" class="form-input" placeholder="Ex: Smartphone Android, Arroz, Medicamento" value="Notebook Pro">
                         </div>
+
                         <div class="form-group">
-                            <label for="sim-ncm">Código NCM (8 dígitos)</label>
+                            <label for="sim-ncm">
+                                <span>Código NCM (8 dígitos) <span class="tooltip-trigger" title="Código de 8 dígitos da Nomenclatura Comum do Mercosul usado para regras tributárias específicas">?</span></span>
+                            </label>
                             <input type="text" id="sim-ncm" class="form-input" placeholder="Ex: 84713012" value="84713012">
                         </div>
+
                         <div class="form-group">
                             <label for="sim-value">Valor Total do Item (R$)</label>
-                            <input type="number" id="sim-value" class="form-input" placeholder="Ex: 1000.00" value="4500">
+                            <input type="number" id="sim-value" class="form-input" placeholder="Insira o valor para simular (Ex: 1000.00)" value="4500">
                         </div>
+
                         <div class="form-group">
                             <label for="sim-rule-type">Tipo de Regra Aplicável</label>
                             <select id="sim-rule-type" class="form-input">
                                 <option value="padrao">Alíquota Cheia (Padrão)</option>
-                                <option value="isento">Cesta Básica Nacional (Isento)</option>
+                                <option value="isento">Cesta Básica Nacional (Isento 100%)</option>
                                 <option value="reducao_60">Alíquota Reduzida (Redução 60%)</option>
                             </select>
                         </div>
+
                         <div class="form-group" style="background: rgba(99, 102, 241, 0.05); padding: 12px; border-radius: var(--border-radius-sm); border: 1px solid rgba(99, 102, 241, 0.2); margin-top: 12px;">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                                <label for="sim-legal-thesis-select" style="font-weight: 700; color: var(--primary); font-size: 13px;">Chave do Cenário Jurídico</label>
+                                <label for="sim-legal-thesis-select" style="font-weight: 700; color: var(--primary); font-size: 13px; margin-bottom: 0;">
+                                    Chave do Cenário Jurídico
+                                    <span class="tooltip-trigger" title="Define se o IBS e a CBS integram a base de cálculo por dentro do ICMS durante a transição 2027+">?</span>
+                                </label>
                                 <span class="badge badge-warning sim-thesis-badge" style="font-size: 10px;">Tese do Fisco</span>
                             </div>
                             <select id="sim-legal-thesis-select" class="form-input" style="font-size: 12px; padding: 6px 10px; cursor: pointer;">
@@ -187,6 +259,9 @@
                             </button>
                         </div>
 
+                        <!-- Side-by-side Visual Comparison Container (Injected dynamically) -->
+                        <div id="sim-bar-comparison" class="sim-comparison-bars" style="display: none;"></div>
+
                         <!-- Panel 1: Visão Geral Executiva -->
                         <div id="sim-panel-summary">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
@@ -197,7 +272,6 @@
                                         <div style="font-size: 18px; font-weight: 800; color: var(--warning); white-space: nowrap;" id="sim-tax-current">R$ 0,00</div>
                                     </div>
                                     <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); display: flex; flex-wrap: wrap; gap: 4px;" id="sim-pills-current">
-                                        <!-- Dynamic pill tags for PIS, COFINS, ICMS, etc. -->
                                     </div>
                                 </div>
 
@@ -208,7 +282,6 @@
                                         <div style="font-size: 18px; font-weight: 800; color: var(--primary); white-space: nowrap;" id="sim-tax-new">R$ 0,00</div>
                                     </div>
                                     <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(99, 102, 241, 0.2); display: flex; flex-wrap: wrap; gap: 4px;" id="sim-pills-new">
-                                        <!-- Dynamic pill tags for CBS, IBS, Residuals -->
                                     </div>
                                 </div>
                             </div>
@@ -228,7 +301,6 @@
                         <!-- Panel 2: Memória de Cálculo (Waterfall Stepper) -->
                         <div id="sim-panel-breakdown" style="display: none;">
                             <div class="waterfall-stepper" id="sim-calc-steps">
-                                <!-- Filled dynamically by JS -->
                             </div>
                         </div>
 
@@ -311,11 +383,10 @@
                         </div>
                     </div>
 
-                </div> <!-- End of .grid.sim-grid -->
+                </div>
 
-                <!-- Wide Multi-Year Simulation Matrix (Inspired by user image) -->
+                <!-- Wide Multi-Year Simulation Matrix -->
                 <div class="card sim-multiyear-card" id="sim-multiyear-container" style="margin-top: 24px; width: 100%;">
-                    <!-- Multiyear View Control Bar -->
                     <div class="multiyear-top-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                             <span style="font-size: 13px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
@@ -341,7 +412,6 @@
                                 </select>
                             </div>
 
-                            <!-- Dropdown to select NF-e when mode is 'nfe' -->
                             <div id="multiyear-nfe-selector-container" style="display: none; align-items: center; gap: 8px;">
                                 <label for="multiyear-nfe-select" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Selecione a NF-e:</label>
                                 <select id="multiyear-nfe-select" class="form-input" style="padding: 4px 10px; font-size: 12px; min-width: 260px; max-width: 380px; cursor: pointer;">
@@ -383,13 +453,12 @@
                                 </tr>
                             </thead>
                             <tbody id="multiyear-table-body">
-                                <!-- Filled dynamically by JS -->
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-            </div> <!-- End of .container -->
+            </div>
         </section>
 
         <!-- Dashboard Section -->
@@ -413,15 +482,23 @@
                         <div class="control-group">
                             <div id="upload-zone" class="upload-zone">
                                 <i data-lucide="upload-cloud"></i>
-                                <h4>Carregar Notas Fiscais (XML, CSV, Excel)</h4>
-                                <p>Arraste arquivos XML (.xml), CSV ou Excel ou clique para escolher</p>
+                                <h4>Carregar Notas Fiscais</h4>
+                                <p>Arraste arquivos XML (.xml), CSV ou Excel aqui ou clique para escolher</p>
+                                <div class="upload-file-tags">
+                                    <span class="file-tag">.XML (NFe)</span>
+                                    <span class="file-tag">.CSV</span>
+                                    <span class="file-tag">.XLSX</span>
+                                </div>
                                 <input type="file" id="csv-file-input" accept=".xml, .csv, .xlsx, .xls" multiple style="display: none;">
                             </div>
                             
-                            <!-- DB Status -->
+                            <!-- DB Status Bar -->
                             <div class="db-status-bar">
-                                <span id="status-dot" class="status-indicator warning"></span>
-                                <span id="status-text">Carregando base padrão...</span>
+                                <div>
+                                    <span id="status-dot" class="status-indicator warning"></span>
+                                    <span id="status-text">Carregando base padrão...</span>
+                                </div>
+                                <span id="db-source-badge" class="badge badge-demo">Demonstração</span>
                             </div>
 
                             <button id="btn-load-default" class="btn btn-secondary" style="width: 100%; margin-top: 12px; font-size: 13px; color: var(--danger); border-color: rgba(239, 68, 68, 0.2);">
@@ -430,7 +507,7 @@
                             </button>
                         </div>
 
-                        <!-- Legal Thesis Scenario Selector (MGK Method) -->
+                        <!-- Legal Thesis Scenario Selector -->
                         <div class="control-group" style="background: rgba(99, 102, 241, 0.05); padding: 12px; border-radius: var(--border-radius-md); border: 1px solid rgba(99, 102, 241, 0.2);">
                             <div class="control-header" style="margin-bottom: 6px;">
                                 <label for="legal-thesis-select" style="font-weight: 700; color: var(--primary); font-size: 13px;">Chave do Cenário Jurídico</label>
@@ -486,38 +563,56 @@
                     <!-- Main Dashboard Area -->
                     <div class="dash-main">
                         
-                        <!-- KPIs -->
-                        <div class="grid kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                        <!-- Redesigned KPIs with Icons and Semantic Color Indicators -->
+                        <div class="grid kpi-grid">
                             
                             <div class="card kpi-card">
-                                <div class="kpi-title">Faturamento Analisado</div>
-                                <div id="kpi-revenue" class="kpi-value">R$ 0,00</div>
+                                <div class="kpi-header">
+                                    <span class="kpi-title">Faturamento Analisado</span>
+                                    <div class="kpi-icon-wrap"><i data-lucide="dollar-sign"></i></div>
+                                </div>
+                                <div id="kpi-revenue" class="kpi-value kpi-val-primary">R$ 0,00</div>
                                 <div id="kpi-count" class="kpi-subtitle">0 notas fiscais</div>
                             </div>
 
                             <div class="card kpi-card">
-                                <div class="kpi-title">Carga Tributária Atual</div>
-                                <div id="kpi-tax-current" class="kpi-value">R$ 0,00</div>
+                                <div class="kpi-header">
+                                    <span class="kpi-title">Carga Tributária Atual</span>
+                                    <div class="kpi-icon-wrap" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);"><i data-lucide="receipt"></i></div>
+                                </div>
+                                <div id="kpi-tax-current" class="kpi-value kpi-val-amber">R$ 0,00</div>
                                 <div id="kpi-tax-current-pct" class="kpi-subtitle">Alíquota média: 0.00%</div>
                             </div>
 
                             <div class="card kpi-card">
-                                <div class="kpi-title">Carga Tributária Nova</div>
-                                <div id="kpi-tax-new" class="kpi-value">R$ 0,00</div>
+                                <div class="kpi-header">
+                                    <span class="kpi-title">Carga Tributária Nova</span>
+                                    <div class="kpi-icon-wrap" style="background: rgba(6, 182, 212, 0.1); color: var(--secondary);"><i data-lucide="scale"></i></div>
+                                </div>
+                                <div id="kpi-tax-new" class="kpi-value" style="color: var(--secondary);">R$ 0,00</div>
                                 <div id="kpi-tax-new-pct" class="kpi-subtitle">Alíquota média: 0.00%</div>
                             </div>
 
                             <div class="card kpi-card">
-                                <div class="kpi-title">Impacto Líquido</div>
-                                <div id="kpi-tax-diff" class="kpi-value">R$ 0,00</div>
+                                <div class="kpi-header">
+                                    <span class="kpi-title">Impacto Líquido</span>
+                                    <div class="kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: var(--success);"><i data-lucide="trending-up" id="kpi-impact-icon"></i></div>
+                                </div>
+                                <div id="kpi-tax-diff" class="kpi-value kpi-val-green">R$ 0,00</div>
                                 <div id="kpi-tax-diff-trend" class="kpi-subtitle">
-                                    <span class="kpi-trend">0.00%</span> da carga
+                                    <span id="kpi-trend-arrow" class="kpi-badge-trend down">0.00%</span> da carga
                                 </div>
                             </div>
 
                             <div class="card kpi-card" id="kpi-contingency-card">
-                                <div class="kpi-title" title="Passivo ou contingência fiscal estimada se prevalecer a Tese do Fisco (SEFAZ/SP)">Risco Fiscal (Tese Fisco)</div>
-                                <div id="kpi-contingency-val" class="kpi-value" style="color: var(--warning);">R$ 0,00</div>
+                                <div class="kpi-header">
+                                    <span class="kpi-title" title="Passivo ou contingência fiscal estimada se prevalecer a Tese do Fisco (SEFAZ/SP)">
+                                        Risco Fiscal
+                                        <span class="tooltip-trigger" title="Diferença calculada entre a Tese do Fisco (SEFAZ/SP) e Tese do Contribuinte (PLP 16/25)">?</span>
+                                    </span>
+                                    <div class="kpi-icon-wrap" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);"><i data-lucide="alert-triangle"></i></div>
+                                </div>
+                                <div id="kpi-contingency-val" class="kpi-value kpi-val-red">R$ 0,00</div>
                                 <div id="kpi-contingency-pct" class="kpi-subtitle">Diferença de ICMS: +0.00%</div>
                             </div>
 
@@ -591,7 +686,6 @@
                                         </tr>
                                     </thead>
                                     <tbody id="sales-table-body">
-                                        <!-- Rows generated by JS -->
                                     </tbody>
                                 </table>
                             </div>
@@ -603,41 +697,41 @@
             </div>
         </section>
 
-        <!-- Rules & Parameters Section -->
+        <!-- Rules & Parameters Section Formatted -->
         <section id="parametros" class="rules-section">
             <div class="container">
                 <div class="section-title">
-                    <h2>Regras Legais e Alíquotas Carregadas</h2>
-                    <p>Monitore os parâmetros oficiais em vigor e adicione regras provisórias para simulação.</p>
+                    <h2>Regras Legais e Parâmetros Tributários</h2>
+                    <p>Monitore os parâmetros oficiais em vigor e adicione regras provisórias de simulação.</p>
                 </div>
                 
                 <div class="grid rules-grid">
                     
-                    <!-- View rules JSON -->
+                    <!-- View rules table formatted -->
                     <div class="card">
-                        <div class="chart-header" style="margin-bottom: 20px;">
-                            <h3>Parâmetros Atuais do Sistema (regras_aliquotas.json)</h3>
-                            <i data-lucide="file-code" style="color: var(--success);"></i>
+                        <div class="chart-header" style="margin-bottom: 16px;">
+                            <h3>Parâmetros do Sistema (regras_aliquotas.json)</h3>
+                            <i data-lucide="shield-check" style="color: var(--success);"></i>
                         </div>
-                        <div id="json-viewer" class="json-viewer">
-                            <!-- JSON populated dynamically -->
+                        <div id="rules-viewer" class="rules-param-card">
+                            <!-- Formatted Table Populated via JS -->
                         </div>
                     </div>
 
-                    <!-- View column mappings JSON -->
+                    <!-- View column mappings formatted -->
                     <div class="card">
-                        <div class="chart-header" style="margin-bottom: 20px;">
-                            <h3>Variantes de Colunas (mapeamento_colunas.json)</h3>
+                        <div class="chart-header" style="margin-bottom: 16px;">
+                            <h3>Variantes de Importação (mapeamento_colunas.json)</h3>
                             <i data-lucide="file-spreadsheet" style="color: var(--secondary);"></i>
                         </div>
-                        <div id="mappings-viewer" class="json-viewer">
-                            <!-- JSON populated dynamically -->
+                        <div id="mappings-viewer" class="rules-param-card">
+                            <!-- Formatted Mappings Table Populated via JS -->
                         </div>
                     </div>
 
                     <!-- Add custom rule simulator -->
                     <div class="card">
-                        <div class="chart-header" style="margin-bottom: 20px;">
+                        <div class="chart-header" style="margin-bottom: 16px;">
                             <h3>Criar Regra de Exceção Provisória</h3>
                             <i data-lucide="plus-circle" style="color: var(--primary);"></i>
                         </div>
@@ -674,11 +768,15 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>&copy; 2026 TaxReform.AI - Simulador de Impacto Tributário Brasileiro.</p>
-            <p style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
-                Baseado nas diretrizes da PEC 45/2019. Fonte oficial de dados: 
+            <p>&copy; 2026 TaxReform.AI - Simulador de Impacto da Reforma Tributária Brasileira (EC 132/23 & LC 214/25).</p>
+            <p style="margin-top: 6px; font-size: 12px; color: var(--text-muted);">
+                Tabelas e alíquotas atualizadas conforme diretrizes oficiais: 
                 <a href="https://www.gov.br/fazenda/pt-br/assuntos/reforma-tributaria" target="_blank">gov.br/fazenda</a>
             </p>
+            <div class="footer-disclaimer">
+                <i data-lucide="info" style="width: 14px; height: 14px;"></i>
+                <span>Ferramenta de simulação educacional e analítica. Não substitui parecer ou consultoria contábil/jurídica.</span>
+            </div>
         </div>
     </footer>
 
